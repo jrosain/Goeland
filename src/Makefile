@@ -3,6 +3,7 @@ GOSRC=main.go
 PLUGINS_SRC=plugins/
 YACCFILE=./parser/tptp_parse.y
 GOPARSER=$(YACCFILE:.y=.go)
+HIGHS_BUILD=./plugins/arithmetic/HiGHS/build/
 
 # Compilation
 BUILD=_build/
@@ -37,10 +38,15 @@ parse:
 coq:
 	coqc -Q . Goeland goeland.v
 
+ari:
+	mkdir -p $(HIGHS_BUILD)
+	cd $(HIGHS_BUILD) && cmake .. && cmake --build . && ctest
+
 clean:
 	rm -f *~ $(GOPARSER) y.output  
 	rm -rf $(BUILD)
 	rm goeland.vo* goeland.glob
+	rm -rf $(HIGHS_BUILD)
 
 tests:
 	go test -v -coverprofile=coverage.out ./... || (go tool cover -html=coverage.out && rm coverage.out)
