@@ -1,3 +1,6 @@
 [submodule "GoelandBenchmarks"]
 	path = GoelandBenchmarks
 	url = https://github.com/GoelandProver/GoelandBenchmarks
+[submodule "src/plugins/arithmetic/HiGHS"]
+	path = src/plugins/arithmetic/HiGHS
+	url = https://github.com/ERGO-Code/HiGHS
