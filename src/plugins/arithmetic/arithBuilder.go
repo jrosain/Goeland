@@ -14,16 +14,16 @@ import (
 const HiGHS_PATH = "./plugins/arithmetic/HiGHS/build/bin/highs"
 
 type CounterExample struct {
-	Variables []string
+	Variables []basictypes.Term
 	Values    []int
 }
 
 func GetCounterExample(formNetworks []basictypes.FormList) (example CounterExample, success bool) {
-	constraintNetwork := buildConstraintNetwork(formNetworks)
+	constraintNetwork, termMap := buildConstraintNetwork(formNetworks)
 	allNetworks := getAllNetworks(constraintNetwork)
 
 	for _, network := range allNetworks {
-		if example, success = tryConstraintNetwork(network); success {
+		if example, success = tryConstraintNetwork(network, termMap); success {
 			return example, true
 		}
 	}
@@ -31,13 +31,16 @@ func GetCounterExample(formNetworks []basictypes.FormList) (example CounterExamp
 	return CounterExample{}, false
 }
 
-func buildConstraintNetwork(formNetworks []basictypes.FormList) []Network {
+func buildConstraintNetwork(formNetworks []basictypes.FormList) ([]Network, map[string]basictypes.Term) {
 	a := MakeSimpleConstraint(&Variable{"X"}, GreaterEq, &Constant{0})
 	b := MakeSimpleConstraint(&Variable{"X"}, GreaterEq, &Constant{1})
 	c := MakeSimpleConstraint(&Variable{"X"}, GreaterEq, &Constant{-5})
 	d := MakeSimpleConstraint(&Variable{"X"}, LesserEq, &Constant{0})
 
-	return []Network{{&a, &b}, {&c}, {&d}}
+	termMap := make(map[string]basictypes.Term)
+	termMap["X"] = basictypes.MakeEmptyMeta()
+
+	return []Network{{&a, &b}, {&c}, {&d}}, termMap
 }
 
 func getAllNetworks(networks []Network) []Network {
@@ -57,12 +60,12 @@ func getAllNetworks(networks []Network) []Network {
 	}
 }
 
-func tryConstraintNetwork(network Network) (example CounterExample, success bool) {
+func tryConstraintNetwork(network Network, termMap map[string]basictypes.Term) (example CounterExample, success bool) {
 	networkFile := "network.lp"
 	solutionFile := "solution.out"
 	buildFile(network, networkFile)
 	runHiGHS(networkFile, solutionFile)
-	return gatherData(solutionFile)
+	return gatherData(solutionFile, termMap)
 }
 
 func buildFile(network Network, networkFile string) {
@@ -98,17 +101,17 @@ func runHiGHS(networkFile, solutionFile string) {
 	}
 }
 
-func gatherData(solutionFile string) (example CounterExample, success bool) {
+func gatherData(solutionFile string, termMap map[string]basictypes.Term) (example CounterExample, success bool) {
 	readFile, err := os.Open(solutionFile)
 	if err != nil {
 		global.PrintFatal("ARI", err.Error())
 	}
 	defer readFile.Close()
 
-	return readAndParseFile(readFile)
+	return readAndParseFile(readFile, termMap)
 }
 
-func readAndParseFile(readFile *os.File) (example CounterExample, success bool) {
+func readAndParseFile(readFile *os.File, termMap map[string]basictypes.Term) (example CounterExample, success bool) {
 	fileScanner := bufio.NewScanner(readFile)
 	fileScanner.Split(bufio.ScanLines)
 
@@ -129,7 +132,7 @@ func readAndParseFile(readFile *os.File) (example CounterExample, success bool) 
 		}
 
 		if cpt > varAmountLine && cpt <= varAmountLine+varAmount {
-			variable, value := returnVariableValue(line)
+			variable, value := returnVariableValue(line, termMap)
 			example.Variables = append(example.Variables, variable)
 			example.Values = append(example.Values, value)
 		}
@@ -151,9 +154,9 @@ func returnVarAmount(line string) int {
 	return varAmount
 }
 
-func returnVariableValue(line string) (variable string, value int) {
+func returnVariableValue(line string, termMap map[string]basictypes.Term) (variable basictypes.Term, value int) {
 	words := strings.Split(line, " ")
-	variable = words[0]
+	variable = termMap[words[0]]
 	value, err := strconv.Atoi(words[1])
 	if err != nil {
 		global.PrintFatal("ARI", err.Error())
