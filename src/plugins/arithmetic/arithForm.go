@@ -107,6 +107,18 @@ func (pf *PairForm) Copy() Form {
 	return NewPairForm(pf.first.Copy(), pf.second.Copy())
 }
 
+type Eq struct {
+	*PairForm
+}
+
+func NewEq(first Form, second Form) *Eq {
+	return &Eq{NewPairForm(first, second)}
+}
+
+func (e *Eq) ToString() string {
+	return "(" + e.first.ToString() + " = " + e.second.ToString() + ")"
+}
+
 type Less struct {
 	*PairForm
 }
