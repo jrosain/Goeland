@@ -83,17 +83,31 @@ func NewVariable(value string) *Variable {
 	return &Variable{NewSimpleForm(String(value))}
 }
 
+type PairOperator string
+
+const (
+	EqOperator      PairOperator = "="
+	LessOperator    PairOperator = "<"
+	GreatOperator   PairOperator = ">"
+	LessEqOperator  PairOperator = "<="
+	GreatEqOperator PairOperator = ">="
+	SumOperator     PairOperator = "+"
+	DiffOperator    PairOperator = "-"
+	ProdOperator    PairOperator = "*"
+)
+
 type PairForm struct {
 	first  Form
 	second Form
+	symbol PairOperator
 }
 
-func NewPairForm(first Form, second Form) *PairForm {
-	return &PairForm{first, second}
+func NewPairForm(first, second Form, symbol PairOperator) *PairForm {
+	return &PairForm{first, second, symbol}
 }
 
 func (pf *PairForm) ToString() string {
-	return pf.first.ToString() + " " + pf.second.ToString()
+	return "(" + pf.first.ToString() + " " + string(pf.symbol) + " " + pf.second.ToString() + ")"
 }
 
 func (pf *PairForm) Equals(other any) bool {
@@ -104,101 +118,69 @@ func (pf *PairForm) Equals(other any) bool {
 }
 
 func (pf *PairForm) Copy() Form {
-	return NewPairForm(pf.first.Copy(), pf.second.Copy())
+	return NewPairForm(pf.first.Copy(), pf.second.Copy(), pf.symbol)
 }
 
 type Eq struct {
 	*PairForm
 }
 
-func NewEq(first Form, second Form) *Eq {
-	return &Eq{NewPairForm(first, second)}
-}
-
-func (e *Eq) ToString() string {
-	return "(" + e.first.ToString() + " = " + e.second.ToString() + ")"
+func NewEq(first, second Form) *Eq {
+	return &Eq{NewPairForm(first, second, EqOperator)}
 }
 
 type Less struct {
 	*PairForm
 }
 
-func NewLess(first Form, second Form) *Less {
-	return &Less{NewPairForm(first, second)}
-}
-
-func (l *Less) ToString() string {
-	return "(" + l.first.ToString() + " < " + l.second.ToString() + ")"
+func NewLess(first, second Form) *Less {
+	return &Less{NewPairForm(first, second, LessOperator)}
 }
 
 type LessEq struct {
 	*PairForm
 }
 
-func NewLessEq(first Form, second Form) *LessEq {
-	return &LessEq{NewPairForm(first, second)}
-}
-
-func (le *LessEq) ToString() string {
-	return "(" + le.first.ToString() + " <= " + le.second.ToString() + ")"
+func NewLessEq(first, second Form) *LessEq {
+	return &LessEq{NewPairForm(first, second, LessEqOperator)}
 }
 
 type Great struct {
 	*PairForm
 }
 
-func NewGreat(first Form, second Form) *Great {
-	return &Great{NewPairForm(first, second)}
-}
-
-func (g *Great) ToString() string {
-	return "(" + g.first.ToString() + " > " + g.second.ToString() + ")"
+func NewGreat(first, second Form) *Great {
+	return &Great{NewPairForm(first, second, GreatOperator)}
 }
 
 type GreatEq struct {
 	*PairForm
 }
 
-func NewGreatEq(first Form, second Form) *GreatEq {
-	return &GreatEq{NewPairForm(first, second)}
-}
-
-func (ge *GreatEq) ToString() string {
-	return "(" + ge.first.ToString() + " >= " + ge.second.ToString() + ")"
+func NewGreatEq(first, second Form) *GreatEq {
+	return &GreatEq{NewPairForm(first, second, GreatEqOperator)}
 }
 
 type Sum struct {
 	*PairForm
 }
 
-func NewSum(first Form, second Form) *Sum {
-	return &Sum{NewPairForm(first, second)}
+func NewSum(first, second Form) *Sum {
+	return &Sum{NewPairForm(first, second, SumOperator)}
 }
 
-func (ge *Sum) ToString() string {
-	return "(" + ge.first.ToString() + " + " + ge.second.ToString() + ")"
-}
-
-type Difference struct {
+type Diff struct {
 	*PairForm
 }
 
-func NewDifference(first Form, second Form) *Difference {
-	return &Difference{NewPairForm(first, second)}
+func NewDiff(first, second Form) *Diff {
+	return &Diff{NewPairForm(first, second, DiffOperator)}
 }
 
-func (ge *Difference) ToString() string {
-	return "(" + ge.first.ToString() + " - " + ge.second.ToString() + ")"
-}
-
-type Product struct {
+type Prod struct {
 	*PairForm
 }
 
-func NewProduct(first Form, second Form) *Product {
-	return &Product{NewPairForm(first, second)}
-}
-
-func (ge *Product) ToString() string {
-	return "(" + ge.first.ToString() + " * " + ge.second.ToString() + ")"
+func NewProd(first, second Form) *Prod {
+	return &Prod{NewPairForm(first, second, ProdOperator)}
 }

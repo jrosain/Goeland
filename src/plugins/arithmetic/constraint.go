@@ -6,14 +6,6 @@ import (
 	"github.com/GoelandProver/Goeland/global"
 )
 
-type Comparaison string
-
-const (
-	Equals    Comparaison = "="
-	GreaterEq Comparaison = ">="
-	LesserEq  Comparaison = "<="
-)
-
 type Constraint interface {
 	global.Basic[Constraint]
 }
@@ -32,15 +24,15 @@ func (n *Network) ToString() string {
 
 type SimpleConstraint struct {
 	form   Form
-	symbol Comparaison
+	symbol PairOperator
 	value  *Constant
 }
 
-func MakeSimpleConstraint(form Form, symbol Comparaison, value *Constant) SimpleConstraint {
+func MakeSimpleConstraint(form Form, symbol PairOperator, value *Constant) SimpleConstraint {
 	return SimpleConstraint{form, symbol, value}
 }
 
-func NewSimpleConstraint(form Form, symbol Comparaison, value *Constant) *SimpleConstraint {
+func NewSimpleConstraint(form Form, symbol PairOperator, value *Constant) *SimpleConstraint {
 	result := MakeSimpleConstraint(form, symbol, value)
 	return &result
 }
