@@ -125,6 +125,21 @@ func (pf *PairForm) TrueCopy() *PairForm {
 	return NewPairForm(pf.first.Copy(), pf.second.Copy(), pf.symbol)
 }
 
+func (pf *PairForm) GetFirst() Form {
+	return pf.first
+}
+
+func (pf *PairForm) GetSecond() Form {
+	return pf.second
+}
+
+type ComparisonForm interface {
+	Form
+	Normalize() ComparisonForm
+	Reverse() ComparisonForm
+	Equalize() ComparisonForm
+}
+
 type Eq struct {
 	*PairForm
 }
@@ -133,8 +148,24 @@ func NewEq(first, second Form) *Eq {
 	return &Eq{NewPairForm(first, second, EqOperator)}
 }
 
-func (e *Eq) Copy() Form {
+func (e *Eq) TrueCopy() *Eq {
 	return &Eq{e.PairForm.TrueCopy()}
+}
+
+func (e *Eq) Copy() Form {
+	return e.TrueCopy()
+}
+
+func (e *Eq) Normalize() ComparisonForm {
+	return NewEq(NewDiff(e.first, e.second), NewConstant(0))
+}
+
+func (e *Eq) Reverse() ComparisonForm {
+	return e.TrueCopy()
+}
+
+func (e *Eq) Equalize() ComparisonForm {
+	return e.TrueCopy()
 }
 
 type Less struct {
@@ -145,8 +176,24 @@ func NewLess(first, second Form) *Less {
 	return &Less{NewPairForm(first, second, LessOperator)}
 }
 
-func (l *Less) Copy() Form {
+func (l *Less) TrueCopy() *Less {
 	return &Less{l.PairForm.TrueCopy()}
+}
+
+func (l *Less) Copy() Form {
+	return l.TrueCopy()
+}
+
+func (l *Less) Normalize() ComparisonForm {
+	return NewLess(NewDiff(l.first, l.second), NewConstant(0))
+}
+
+func (l *Less) Reverse() ComparisonForm {
+	return NewGreatEq(l.first, l.second)
+}
+
+func (l *Less) Equalize() ComparisonForm {
+	return NewLessEq(NewSum(l.first, NewConstant(1)), l.second)
 }
 
 type LessEq struct {
@@ -157,8 +204,24 @@ func NewLessEq(first, second Form) *LessEq {
 	return &LessEq{NewPairForm(first, second, LessEqOperator)}
 }
 
-func (le *LessEq) Copy() Form {
+func (le *LessEq) TrueCopy() *LessEq {
 	return &LessEq{le.PairForm.TrueCopy()}
+}
+
+func (le *LessEq) Copy() Form {
+	return le.TrueCopy()
+}
+
+func (le *LessEq) Normalize() ComparisonForm {
+	return NewLessEq(NewDiff(le.first, le.second), NewConstant(0))
+}
+
+func (le *LessEq) Reverse() ComparisonForm {
+	return NewGreat(le.first, le.second)
+}
+
+func (le *LessEq) Equalize() ComparisonForm {
+	return le.TrueCopy()
 }
 
 type Great struct {
@@ -169,8 +232,24 @@ func NewGreat(first, second Form) *Great {
 	return &Great{NewPairForm(first, second, GreatOperator)}
 }
 
-func (g *Great) Copy() Form {
+func (g *Great) TrueCopy() *Great {
 	return &Great{g.PairForm.TrueCopy()}
+}
+
+func (g *Great) Copy() Form {
+	return g.TrueCopy()
+}
+
+func (g *Great) Normalize() ComparisonForm {
+	return NewGreat(NewDiff(g.first, g.second), NewConstant(0))
+}
+
+func (g *Great) Reverse() ComparisonForm {
+	return NewLessEq(g.first, g.second)
+}
+
+func (g *Great) Equalize() ComparisonForm {
+	return NewGreatEq(NewDiff(g.first, NewConstant(1)), g.second)
 }
 
 type GreatEq struct {
@@ -181,8 +260,24 @@ func NewGreatEq(first, second Form) *GreatEq {
 	return &GreatEq{NewPairForm(first, second, GreatEqOperator)}
 }
 
-func (ge *GreatEq) Copy() Form {
+func (ge *GreatEq) TrueCopy() *GreatEq {
 	return &GreatEq{ge.PairForm.TrueCopy()}
+}
+
+func (ge *GreatEq) Copy() Form {
+	return ge.TrueCopy()
+}
+
+func (ge *GreatEq) Normalize() ComparisonForm {
+	return NewGreatEq(NewDiff(ge.first, ge.second), NewConstant(0))
+}
+
+func (ge *GreatEq) Reverse() ComparisonForm {
+	return NewLess(ge.first, ge.second)
+}
+
+func (ge *GreatEq) Equalize() ComparisonForm {
+	return ge.TrueCopy()
 }
 
 type Sum struct {
