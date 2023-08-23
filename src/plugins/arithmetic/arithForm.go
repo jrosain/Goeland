@@ -88,8 +88,8 @@ type PairOperator string
 const (
 	EqOperator      PairOperator = "="
 	LessOperator    PairOperator = "<"
-	GreatOperator   PairOperator = ">"
 	LessEqOperator  PairOperator = "<="
+	GreatOperator   PairOperator = ">"
 	GreatEqOperator PairOperator = ">="
 	SumOperator     PairOperator = "+"
 	DiffOperator    PairOperator = "-"
@@ -118,6 +118,10 @@ func (pf *PairForm) Equals(other any) bool {
 }
 
 func (pf *PairForm) Copy() Form {
+	return pf.TrueCopy()
+}
+
+func (pf *PairForm) TrueCopy() *PairForm {
 	return NewPairForm(pf.first.Copy(), pf.second.Copy(), pf.symbol)
 }
 
@@ -129,12 +133,20 @@ func NewEq(first, second Form) *Eq {
 	return &Eq{NewPairForm(first, second, EqOperator)}
 }
 
+func (e *Eq) Copy() Form {
+	return &Eq{e.PairForm.TrueCopy()}
+}
+
 type Less struct {
 	*PairForm
 }
 
 func NewLess(first, second Form) *Less {
 	return &Less{NewPairForm(first, second, LessOperator)}
+}
+
+func (l *Less) Copy() Form {
+	return &Less{l.PairForm.TrueCopy()}
 }
 
 type LessEq struct {
@@ -145,12 +157,20 @@ func NewLessEq(first, second Form) *LessEq {
 	return &LessEq{NewPairForm(first, second, LessEqOperator)}
 }
 
+func (le *LessEq) Copy() Form {
+	return &LessEq{le.PairForm.TrueCopy()}
+}
+
 type Great struct {
 	*PairForm
 }
 
 func NewGreat(first, second Form) *Great {
 	return &Great{NewPairForm(first, second, GreatOperator)}
+}
+
+func (g *Great) Copy() Form {
+	return &Great{g.PairForm.TrueCopy()}
 }
 
 type GreatEq struct {
@@ -161,12 +181,20 @@ func NewGreatEq(first, second Form) *GreatEq {
 	return &GreatEq{NewPairForm(first, second, GreatEqOperator)}
 }
 
+func (ge *GreatEq) Copy() Form {
+	return &GreatEq{ge.PairForm.TrueCopy()}
+}
+
 type Sum struct {
 	*PairForm
 }
 
 func NewSum(first, second Form) *Sum {
 	return &Sum{NewPairForm(first, second, SumOperator)}
+}
+
+func (s *Sum) Copy() Form {
+	return &Sum{s.PairForm.TrueCopy()}
 }
 
 type Diff struct {
@@ -177,10 +205,18 @@ func NewDiff(first, second Form) *Diff {
 	return &Diff{NewPairForm(first, second, DiffOperator)}
 }
 
+func (d *Diff) Copy() Form {
+	return &Diff{d.PairForm.TrueCopy()}
+}
+
 type Prod struct {
 	*PairForm
 }
 
 func NewProd(first, second Form) *Prod {
 	return &Prod{NewPairForm(first, second, ProdOperator)}
+}
+
+func (p *Prod) Copy() Form {
+	return &Prod{p.PairForm.TrueCopy()}
 }
