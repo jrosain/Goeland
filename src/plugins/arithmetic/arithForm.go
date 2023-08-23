@@ -93,8 +93,13 @@ const (
 	GreatEqOperator PairOperator = ">="
 	SumOperator     PairOperator = "+"
 	DiffOperator    PairOperator = "-"
-	ProdOperator    PairOperator = "*"
 )
+
+type Paired interface {
+	GetFirst() Form
+	GetSecond() Form
+	GetSymbol() PairOperator
+}
 
 type PairForm struct {
 	first  Form
@@ -107,7 +112,7 @@ func NewPairForm(first, second Form, symbol PairOperator) *PairForm {
 }
 
 func (pf *PairForm) ToString() string {
-	return "(" + pf.first.ToString() + " " + string(pf.symbol) + " " + pf.second.ToString() + ")"
+	return pf.first.ToString() + " " + string(pf.symbol) + " " + pf.second.ToString()
 }
 
 func (pf *PairForm) Equals(other any) bool {
@@ -133,8 +138,13 @@ func (pf *PairForm) GetSecond() Form {
 	return pf.second
 }
 
+func (pf *PairForm) GetSymbol() PairOperator {
+	return pf.symbol
+}
+
 type ComparisonForm interface {
 	Form
+	Paired
 	Normalize() ComparisonForm
 	Reverse() ComparisonForm
 	Equalize() ComparisonForm
@@ -302,16 +312,4 @@ func NewDiff(first, second Form) *Diff {
 
 func (d *Diff) Copy() Form {
 	return &Diff{d.PairForm.TrueCopy()}
-}
-
-type Prod struct {
-	*PairForm
-}
-
-func NewProd(first, second Form) *Prod {
-	return &Prod{NewPairForm(first, second, ProdOperator)}
-}
-
-func (p *Prod) Copy() Form {
-	return &Prod{p.PairForm.TrueCopy()}
 }

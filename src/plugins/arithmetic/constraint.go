@@ -28,13 +28,13 @@ type SimpleConstraint struct {
 	value  *Constant
 }
 
-func MakeSimpleConstraint(form Form, symbol PairOperator, value *Constant) SimpleConstraint {
-	return SimpleConstraint{form, symbol, value}
+func NewSimpleConstraint(form Form, symbol PairOperator, value *Constant) *SimpleConstraint {
+	return &SimpleConstraint{form, symbol, value}
 }
 
-func NewSimpleConstraint(form Form, symbol PairOperator, value *Constant) *SimpleConstraint {
-	result := MakeSimpleConstraint(form, symbol, value)
-	return &result
+func NewSimpleConstraintFromComparison(form ComparisonForm) *SimpleConstraint {
+	form = form.Normalize().Reverse().Equalize()
+	return &SimpleConstraint{form.GetFirst(), form.GetSymbol(), NewConstant(0)}
 }
 
 func (sc *SimpleConstraint) Equals(other any) bool {

@@ -32,15 +32,15 @@ func GetCounterExample(formNetworks []basictypes.FormList) (example CounterExamp
 }
 
 func buildConstraintNetwork(formNetworks []basictypes.FormList) ([]Network, map[string]basictypes.Term) {
-	a := MakeSimpleConstraint(NewVariable("X"), GreatEqOperator, NewConstant(0))
-	b := MakeSimpleConstraint(NewVariable("X"), GreatEqOperator, NewConstant(1))
-	c := MakeSimpleConstraint(NewVariable("X"), GreatEqOperator, NewConstant(-5))
-	d := MakeSimpleConstraint(NewVariable("X"), LessEqOperator, NewConstant(0))
+	a := NewSimpleConstraintFromComparison(NewLessEq(NewVariable("X"), NewConstant(-1)))
+	b := NewSimpleConstraintFromComparison(NewLessEq(NewVariable("X"), NewConstant(0)))
+	c := NewSimpleConstraintFromComparison(NewLessEq(NewVariable("X"), NewConstant(-6)))
+	d := NewSimpleConstraintFromComparison(NewGreatEq(NewVariable("X"), NewConstant(1)))
 
 	termMap := make(map[string]basictypes.Term)
 	termMap["X"] = basictypes.MakeEmptyMeta()
 
-	return []Network{{&a, &b}, {&c}, {&d}}, termMap
+	return []Network{{a, b}, {c}, {d}}, termMap
 }
 
 func getAllNetworks(networks []Network) []Network {
