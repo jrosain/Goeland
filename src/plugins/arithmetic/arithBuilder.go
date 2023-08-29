@@ -2,6 +2,7 @@ package arithmetic
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"os/exec"
 	"strconv"
@@ -18,7 +19,20 @@ type CounterExample struct {
 	Values    []int
 }
 
-func GetCounterExample(formNetworks []basictypes.FormList) (example CounterExample, success bool) {
+func (ce *CounterExample) ToString() string {
+	str := ""
+	for i := range ce.Variables {
+		str += fmt.Sprintf("%s -> %v, ", ce.Variables[i].ToString(), ce.Values[i])
+	}
+	return str[:len(str)-2]
+}
+
+func IsArithClosure(pred basictypes.Pred) bool {
+	comparaison, _ := convertPred(pred)
+	return comparaison.isClosure()
+}
+
+func GetCounterExample(formNetworks [][]basictypes.Pred) (example CounterExample, success bool) {
 	constraintNetwork, termMap := buildConstraintNetwork(formNetworks)
 	allNetworks := getAllNetworks(constraintNetwork)
 
@@ -31,16 +45,24 @@ func GetCounterExample(formNetworks []basictypes.FormList) (example CounterExamp
 	return CounterExample{}, false
 }
 
-func buildConstraintNetwork(formNetworks []basictypes.FormList) ([]Network, map[string]basictypes.Term) {
-	a := NewSimpleConstraintFromComparison(NewLessEq(NewVariable("X"), NewConstant(-1)))
-	b := NewSimpleConstraintFromComparison(NewLessEq(NewVariable("X"), NewConstant(0)))
-	c := NewSimpleConstraintFromComparison(NewLessEq(NewVariable("X"), NewConstant(-6)))
-	d := NewSimpleConstraintFromComparison(NewGreatEq(NewVariable("X"), NewConstant(1)))
-
+func buildConstraintNetwork(predNetworks [][]basictypes.Pred) ([]Network, map[string]basictypes.Term) {
+	networks := []Network{}
 	termMap := make(map[string]basictypes.Term)
-	termMap["X"] = basictypes.MakeEmptyMeta()
 
-	return []Network{{a, b}, {c}, {d}}, termMap
+	for _, predNetwork := range predNetworks {
+		network := Network{}
+		for _, pred := range predNetwork {
+			form, newMap := convertPred(pred)
+			network = append(network, form.Simplify())
+
+			for k, v := range newMap {
+				termMap[k] = v
+			}
+		}
+		networks = append(networks, network)
+	}
+
+	return networks, termMap
 }
 
 func getAllNetworks(networks []Network) []Network {

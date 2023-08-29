@@ -47,19 +47,21 @@ const (
 
 type substitutions = []int64
 
-/** The unifier type is a type that keeps the substitutions that close the whole subtree.
+/*
+  - The unifier type is a type that keeps the substitutions that close the whole subtree.
     It is stored in localUnifiers.
-	The goal of this object is to simply export two functions:
-	* a function to add the local substitutions that close a subtree
-	* a function to prune the substitutions when a constraint is given
-	The management of everything else falls inside the object's reach.
-	As such, the current implementation does the following:
-	* it stores the metavariables that exist in at least one substitution.
-	* it stores the terms that exist in at least one substitution.
-	* the local unifiers is a list of substitutions, where each substitution
-	  is a list of pairs of integers, representing the index of the (meta, term)
-	  in the local meta list and term list.
- **/
+    The goal of this object is to simply export two functions:
+  - a function to add the local substitutions that close a subtree
+  - a function to prune the substitutions when a constraint is given
+    The management of everything else falls inside the object's reach.
+    As such, the current implementation does the following:
+  - it stores the metavariables that exist in at least one substitution.
+  - it stores the terms that exist in at least one substitution.
+  - the local unifiers is a list of substitutions, where each substitution
+    is a list of pairs of integers, representing the index of the (meta, term)
+    in the local meta list and term list.
+    *
+*/
 type Unifier struct {
 	availableMetaList btps.MetaList
 	availableTermList btps.TermList
@@ -125,7 +127,7 @@ func (u *Unifier) PruneSubstitutions(substs []ttps.Substitutions) {
 func (u Unifier) ToString() string {
 	str := "object Unifier{\n"
 	for _, unifier := range u.localUnifiers {
-		str += "\t { " + strings.Join(Map(unifier, func(index int, element int64) string {
+		str += "\t { " + strings.Join(ApplyFuncToEach(unifier, func(index int, element int64) string {
 			if element == UNMAPPED {
 				return fmt.Sprintf("(%s: UNMAPPED)", u.availableMetaList[index].ToString())
 			}
@@ -285,11 +287,14 @@ func (u *Unifier) removeFromUnifiers(unifierIndex int64) {
 	u.localUnifiers = u.localUnifiers[:ed]
 }
 
-/**
-	1 - Get all compatibles substitutions l from the localUnifiers (i.e., forall x in dom(l), then s(x) should be equal to l(x))
- 	2 - Add a substitution from a meta x in l if x is not in dom(l)
-	3 - If there is a compatibility issue, make a new substitution where everything that is in the original substitution and
-		is in conflict with the new substitution is removed, and add it to the local unifiers */
+/*
+*
+
+		1 - Get all compatibles substitutions l from the localUnifiers (i.e., forall x in dom(l), then s(x) should be equal to l(x))
+	 	2 - Add a substitution from a meta x in l if x is not in dom(l)
+		3 - If there is a compatibility issue, make a new substitution where everything that is in the original substitution and
+			is in conflict with the new substitution is removed, and add it to the local unifiers
+*/
 func (u *Unifier) mergeWithLocalUnifier(workingSubst substitutions) {
 	newUnifiers := []substitutions{}
 	for i, localUnifier := range u.localUnifiers {

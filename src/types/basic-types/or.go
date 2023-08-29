@@ -85,7 +85,7 @@ func (o Or) GetSubTerms() TermList {
 }
 
 func (o Or) ToString() string {
-	return o.ToMappedString(defaultMap, true)
+	return o.ToMappedString(DefaultMap, true)
 }
 
 func (o Or) Equals(f any) bool {

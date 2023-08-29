@@ -65,7 +65,7 @@ func (e Ex) GetType() typing.TypeScheme { return typing.DefaultPropType(0) }
 func (e Ex) GetMetas() MetaList         { return e.GetForm().GetMetas() }
 
 func (e Ex) ToString() string {
-	return e.ToMappedString(defaultMap, true)
+	return e.ToMappedString(DefaultMap, true)
 }
 
 func (e Ex) Copy() Form {
@@ -123,7 +123,7 @@ func (a All) GetType() typing.TypeScheme { return typing.DefaultPropType(0) }
 func (a All) GetMetas() MetaList         { return a.GetForm().GetMetas() }
 
 func (a All) ToString() string {
-	return a.ToMappedString(defaultMap, true)
+	return a.ToMappedString(DefaultMap, true)
 }
 
 func (a All) Copy() Form {
@@ -185,7 +185,7 @@ func (a AllType) ToMappedString(map_ MapString, displayTypes bool) string {
 }
 
 func (a AllType) ToString() string {
-	return "(" + a.ToMappedString(defaultMap, true) + " (" + a.GetForm().ToString() + "))"
+	return "(" + a.ToMappedString(DefaultMap, true) + " (" + a.GetForm().ToString() + "))"
 }
 func (a AllType) GetMetas() MetaList { return a.GetForm().GetMetas() }
 

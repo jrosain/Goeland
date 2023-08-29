@@ -98,7 +98,7 @@ func (p Pred) ToMappedString(map_ MapString, type_ bool) string {
 }
 
 func (p Pred) ToString() string {
-	return p.ToMappedString(defaultMap, true)
+	return p.ToMappedString(DefaultMap, true)
 }
 
 func (p Pred) Copy() Form {

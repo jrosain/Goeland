@@ -92,7 +92,7 @@ func (f Fun) IsFun() bool                    { return true }
 func (Fun) ToMeta() Meta                     { return MakeEmptyMeta() }
 
 func (f Fun) ToString() string {
-	return f.ToMappedString(defaultMap, true)
+	return f.ToMappedString(DefaultMap, true)
 }
 
 func (f Fun) Equals(t Term) bool {

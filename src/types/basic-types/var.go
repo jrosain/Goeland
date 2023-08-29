@@ -64,7 +64,7 @@ func (Var) ToMeta() Meta                     { return MakeEmptyMeta() }
 func (Var) GetMetas() MetaList               { return MetaList{} }
 
 func (v Var) ToString() string {
-	return v.ToMappedString(defaultMap, true)
+	return v.ToMappedString(DefaultMap, true)
 }
 
 func (v Var) Equals(t Term) bool {

@@ -60,7 +60,7 @@ func (i Imp) GetF2() Form                { return i.f2.Copy() }
 func (i Imp) Copy() Form                 { return MakeImp(i.GetIndex(), i.GetF1(), i.GetF2()) }
 func (i Imp) GetMetas() MetaList         { return i.f1.GetMetas().Merge(i.f2.GetMetas()) }
 func (i Imp) GetType() typing.TypeScheme { return typing.DefaultPropType(0) }
-func (i Imp) ToString() string           { return i.ToMappedString(defaultMap, true) }
+func (i Imp) ToString() string           { return i.ToMappedString(DefaultMap, true) }
 
 func (i Imp) Equals(f any) bool {
 	oth, isImp := f.(Imp)
@@ -106,7 +106,7 @@ func (e Equ) GetF2() Form                { return e.f2.Copy() }
 func (e Equ) Copy() Form                 { return MakeEqu(e.GetIndex(), e.GetF1(), e.GetF2()) }
 func (e Equ) GetMetas() MetaList         { return e.f1.GetMetas().Merge(e.f2.GetMetas()) }
 func (e Equ) GetType() typing.TypeScheme { return typing.DefaultPropType(0) }
-func (e Equ) ToString() string           { return e.ToMappedString(defaultMap, true) }
+func (e Equ) ToString() string           { return e.ToMappedString(DefaultMap, true) }
 
 func (e Equ) Equals(f any) bool {
 	oth, isEqu := f.(Equ)

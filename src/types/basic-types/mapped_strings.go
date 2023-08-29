@@ -68,39 +68,39 @@ const (
 	TypeVarType
 )
 
-var defaultMap = make(map[FormulaType]string)
+var DefaultMap = make(map[FormulaType]string)
 
 func initDefaultMap() {
 	if global.IsPrettyPrint() {
-		defaultMap[AndConn] = "∧"
-		defaultMap[OrConn] = "∨"
-		defaultMap[ImpConn] = "⇒"
-		defaultMap[EquConn] = "⇔"
-		defaultMap[NotConn] = "¬"
-		defaultMap[TopType] = "⊤"
-		defaultMap[BotType] = "⊥"
-		defaultMap[AllQuant] = "∀"
-		defaultMap[ExQuant] = "∃"
-		defaultMap[AllTypeQuant] = "∀"
-		defaultMap[PredEmpty] = "∅"
+		DefaultMap[AndConn] = "∧"
+		DefaultMap[OrConn] = "∨"
+		DefaultMap[ImpConn] = "⇒"
+		DefaultMap[EquConn] = "⇔"
+		DefaultMap[NotConn] = "¬"
+		DefaultMap[TopType] = "⊤"
+		DefaultMap[BotType] = "⊥"
+		DefaultMap[AllQuant] = "∀"
+		DefaultMap[ExQuant] = "∃"
+		DefaultMap[AllTypeQuant] = "∀"
+		DefaultMap[PredEmpty] = "∅"
 	} else {
-		defaultMap[AndConn] = "&"
-		defaultMap[OrConn] = "|"
-		defaultMap[ImpConn] = "=>"
-		defaultMap[EquConn] = "<=>"
-		defaultMap[NotConn] = "~"
-		defaultMap[TopType] = "$true"
-		defaultMap[BotType] = "$false"
-		defaultMap[AllQuant] = "!"
-		defaultMap[ExQuant] = "?"
-		defaultMap[AllTypeQuant] = "!"
-		defaultMap[PredEmpty] = "{}"
+		DefaultMap[AndConn] = "&"
+		DefaultMap[OrConn] = "|"
+		DefaultMap[ImpConn] = "=>"
+		DefaultMap[EquConn] = "<=>"
+		DefaultMap[NotConn] = "~"
+		DefaultMap[TopType] = "$true"
+		DefaultMap[BotType] = "$false"
+		DefaultMap[AllQuant] = "!"
+		DefaultMap[ExQuant] = "?"
+		DefaultMap[AllTypeQuant] = "!"
+		DefaultMap[PredEmpty] = "{}"
 	}
-	defaultMap[QuantVarOpen] = "["
-	defaultMap[QuantVarClose] = "]"
-	defaultMap[QuantVarSep] = ":"
-	defaultMap[PredTypeVarSep] = ";"
-	defaultMap[TypeVarType] = "$tType"
+	DefaultMap[QuantVarOpen] = "["
+	DefaultMap[QuantVarClose] = "]"
+	DefaultMap[QuantVarSep] = ":"
+	DefaultMap[PredTypeVarSep] = ";"
+	DefaultMap[TypeVarType] = "$tType"
 }
 
 type MappedStringable interface {
