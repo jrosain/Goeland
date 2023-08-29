@@ -31,13 +31,13 @@ If the parameter is not a List, returns false
 They are equals if they are the same size and each element of a list is .Equals() to the element in the same place for the other list
 */
 func (list *List[T]) Equals(other any) bool {
-	if typed, ok := other.(List[T]); ok {
-		if len(*list) != len(typed) {
+	if typed, ok := other.(*List[T]); ok {
+		if len(*list) != len(*typed) {
 			return false
 		}
 
 		for i := range *list {
-			if !(*list)[i].Equals(typed[i]) {
+			if !(*list)[i].Equals((*typed)[i]) {
 				return false
 			}
 		}
@@ -87,7 +87,7 @@ func (list *List[T]) AppendIfNotContains(elements ...T) *List[T] {
 }
 
 /*
-Returns a shallow copy of the list.
+Returns a deep copy of the list.
 */
 func (list *List[T]) Copy() *List[T] {
 	result := &List[T]{}
@@ -100,9 +100,9 @@ func (list *List[T]) Copy() *List[T] {
 }
 
 /*
-Returns a deep copy of the list.
+Returns a shallow copy of the list.
 */
-func (list *List[T]) DeepCopy() *List[T] {
+func (list *List[T]) ShallowCopy() *List[T] {
 	result := &List[T]{}
 
 	for _, element := range *list {

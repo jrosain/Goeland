@@ -117,7 +117,7 @@ func To[T any, U any](obj U) T {
 	return any(obj).(T)
 }
 
-func Map[T any, U any](input []T, fn func(int, T) U) []U {
+func ApplyFuncToEach[T any, U any](input []T, fn func(int, T) U) []U {
 	output := []U{}
 	for i, element := range input {
 		output = append(output, fn(i, element))
@@ -126,7 +126,7 @@ func Map[T any, U any](input []T, fn func(int, T) U) []U {
 }
 
 func ConvertList[T any, U any](input []T) []U {
-	return Map[T, U](input, func(_ int, element T) U { return any(element).(U) })
+	return ApplyFuncToEach[T, U](input, func(_ int, element T) U { return any(element).(U) })
 }
 
 type Copyable[T any] interface {
