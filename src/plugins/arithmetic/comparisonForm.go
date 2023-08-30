@@ -87,7 +87,7 @@ func (e *Eq) Simplify() ComparisonForm {
 }
 
 func (e *Eq) isClosure() bool {
-	return e.first.Equals(e.second)
+	return !e.first.Equals(e.second)
 }
 
 func getBothIntegers(comp ComparisonForm) (first int, second int, areBothInts bool) {
@@ -139,7 +139,7 @@ func (l *Less) Simplify() ComparisonForm {
 func (l *Less) isClosure() bool {
 	first, second, areBothIntegers := getBothIntegers(l)
 	if areBothIntegers {
-		return first < second
+		return first >= second
 	}
 
 	return false
@@ -184,7 +184,7 @@ func (le *LessEq) Simplify() ComparisonForm {
 func (le *LessEq) isClosure() bool {
 	first, second, areBothIntegers := getBothIntegers(le)
 	if areBothIntegers {
-		return first <= second
+		return first > second
 	}
 
 	return false
@@ -229,7 +229,7 @@ func (g *Great) Simplify() ComparisonForm {
 func (g *Great) isClosure() bool {
 	first, second, areBothIntegers := getBothIntegers(g)
 	if areBothIntegers {
-		return first > second
+		return first <= second
 	}
 
 	return false
@@ -274,7 +274,7 @@ func (ge *GreatEq) Simplify() ComparisonForm {
 func (ge *GreatEq) isClosure() bool {
 	first, second, areBothIntegers := getBothIntegers(ge)
 	if areBothIntegers {
-		return first >= second
+		return first < second
 	}
 
 	return false

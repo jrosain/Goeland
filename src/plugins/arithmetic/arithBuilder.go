@@ -27,9 +27,19 @@ func (ce *CounterExample) ToString() string {
 	return str[:len(str)-2]
 }
 
-func IsArithClosure(pred basictypes.Pred) bool {
-	comparaison, _ := convertPred(pred)
-	return comparaison.isClosure()
+func IsArithClosure(form basictypes.Form) bool {
+	switch typed := form.(type) {
+	case basictypes.Not:
+		if predTyped, ok := typed.GetForm().(basictypes.Pred); ok {
+			comparaison, _ := convertPred(predTyped)
+			return !comparaison.isClosure()
+		}
+	case basictypes.Pred:
+		comparaison, _ := convertPred(typed)
+		return comparaison.isClosure()
+	}
+
+	return false
 }
 
 func GetCounterExample(formNetworks [][]basictypes.Pred) (example CounterExample, success bool) {

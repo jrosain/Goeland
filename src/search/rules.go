@@ -45,6 +45,7 @@ import (
 	treesearch "github.com/GoelandProver/Goeland/code-trees/tree-search"
 	treetypes "github.com/GoelandProver/Goeland/code-trees/tree-types"
 	"github.com/GoelandProver/Goeland/global"
+	"github.com/GoelandProver/Goeland/plugins/arithmetic"
 	typing "github.com/GoelandProver/Goeland/polymorphism/typing"
 	basictypes "github.com/GoelandProver/Goeland/types/basic-types"
 	complextypes "github.com/GoelandProver/Goeland/types/complex-types"
@@ -83,6 +84,10 @@ func ApplyClosureRules(form basictypes.Form, state *complextypes.State) (bool, [
 	var substitutions []treetypes.Substitutions
 
 	if searchObviousClosureRule(form) {
+		return true, substitutions
+	}
+
+	if global.GetArithModule() && arithmetic.IsArithClosure(form) {
 		return true, substitutions
 	}
 

@@ -108,7 +108,7 @@ func childrenClosedByThemselves(args wcdArgs, proofChildren [][]proof.ProofStruc
 
 	xchg.WriteExchanges(args.fatherId, args.st, nil, ctps.MakeEmptySubstAndForm(), "WaitChildren - To father - all closed")
 
-	global.PrintInfo("CCBT", args.st.GetGlobalUnifier().ToString())
+	global.PrintDebug("CCBT", args.st.GetGlobalUnifier().ToString())
 
 	sendSubToFather(args.c, true, false, args.fatherId, args.st, args.givenSubsts, args.nodeId, args.originalNodeId, args.toReintroduce)
 }
