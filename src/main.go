@@ -79,7 +79,7 @@ func main() {
 	}
 }
 
-// Start solving. Called in a goroutine so that assisted mode can execute a Fyne application in main goroutine.
+// Start solving.
 func startSearch(form basictypes.Form, bound int) {
 	global.PrintDebug("MAIN", "Start search")
 

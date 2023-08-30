@@ -28,14 +28,8 @@ func NewComparaisonForm(first, second Form, symbol PairOperator) ComparisonForm 
 }
 
 func buildComparisonComponentsFrom(compForm ComparisonForm) ComparisonForm {
-	println(compForm.ToString())
-	normalized := compForm.Normalize()
-	println(normalized.ToString())
-	reversed := normalized.Reverse()
-	println(reversed.ToString())
-	equalized := reversed.Equalize()
-	println(equalized.ToString())
-	factorMap := equalized.getFactorMap()
+	formatted := compForm.Normalize().Reverse().Equalize()
+	factorMap := formatted.getFactorMap()
 
 	firstDone := false
 	var constant *Constant
@@ -53,7 +47,7 @@ func buildComparisonComponentsFrom(compForm ComparisonForm) ComparisonForm {
 		}
 	}
 
-	return NewComparaisonForm(form, NewNeg(constant), equalized.GetSymbol())
+	return NewComparaisonForm(form, NewNeg(constant), formatted.GetSymbol())
 }
 
 type Eq struct {
