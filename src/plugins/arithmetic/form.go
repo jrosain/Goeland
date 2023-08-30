@@ -57,8 +57,16 @@ type SimpleForm[T Form] struct {
 	value T
 }
 
+type SimpleFormable[T Form] interface {
+	GetValue() T
+}
+
 func NewSimpleForm[T Form](value T) *SimpleForm[T] {
 	return &SimpleForm[T]{value}
+}
+
+func (sf *SimpleForm[T]) GetValue() T {
+	return sf.value
 }
 
 func (sf *SimpleForm[T]) ToString() string {
@@ -66,8 +74,8 @@ func (sf *SimpleForm[T]) ToString() string {
 }
 
 func (sf *SimpleForm[T]) Equals(other any) bool {
-	if typed, ok := other.(*SimpleForm[T]); ok {
-		return sf.value.Equals(typed.value)
+	if typed, ok := other.(SimpleFormable[T]); ok {
+		return sf.value.Equals(typed.GetValue())
 	}
 	return false
 }

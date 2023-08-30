@@ -32,11 +32,11 @@ func IsArithClosure(form basictypes.Form) bool {
 	case basictypes.Not:
 		if predTyped, ok := typed.GetForm().(basictypes.Pred); ok {
 			comparaison, _ := convertPred(predTyped)
-			return !comparaison.isClosure()
+			return !comparaison.isComparisonFalse()
 		}
 	case basictypes.Pred:
 		comparaison, _ := convertPred(typed)
-		return comparaison.isClosure()
+		return comparaison.isComparisonFalse()
 	}
 
 	return false

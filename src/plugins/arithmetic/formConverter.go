@@ -20,6 +20,8 @@ func convertPred(old basictypes.Pred) (result ComparisonForm, termMap map[string
 	}
 
 	switch old.GetID().GetName() {
+	case "=":
+		return NewEq(args[0], args[1]), termMap
 	case "$lesseq":
 		return NewLessEq(args[0], args[1]), termMap
 	case "$less":

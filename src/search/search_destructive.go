@@ -259,7 +259,6 @@ func selectChildren(father Communication, children *[]Communication, current_sub
 						cpt_children_returning_subst++
 					}
 				}
-
 			} else {
 				// Signal to children to stop and wait father for a new order
 				global.PrintDebug("SLC", fmt.Sprintf("Open child found : %v ! - tell to remaining children to wait father", res.id))

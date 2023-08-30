@@ -7,7 +7,7 @@ type ComparisonForm interface {
 	Reverse() ComparisonForm
 	Equalize() ComparisonForm
 	Simplify() ComparisonForm
-	isClosure() bool
+	isComparisonFalse() bool
 }
 
 func NewComparaisonForm(first, second Form, symbol PairOperator) ComparisonForm {
@@ -86,7 +86,7 @@ func (e *Eq) Simplify() ComparisonForm {
 	return buildComparisonComponentsFrom(e)
 }
 
-func (e *Eq) isClosure() bool {
+func (e *Eq) isComparisonFalse() bool {
 	return !e.first.Equals(e.second)
 }
 
@@ -136,7 +136,7 @@ func (l *Less) Simplify() ComparisonForm {
 	return buildComparisonComponentsFrom(l)
 }
 
-func (l *Less) isClosure() bool {
+func (l *Less) isComparisonFalse() bool {
 	first, second, areBothIntegers := getBothIntegers(l)
 	if areBothIntegers {
 		return first >= second
@@ -181,7 +181,7 @@ func (le *LessEq) Simplify() ComparisonForm {
 	return buildComparisonComponentsFrom(le)
 }
 
-func (le *LessEq) isClosure() bool {
+func (le *LessEq) isComparisonFalse() bool {
 	first, second, areBothIntegers := getBothIntegers(le)
 	if areBothIntegers {
 		return first > second
@@ -226,7 +226,7 @@ func (g *Great) Simplify() ComparisonForm {
 	return buildComparisonComponentsFrom(g)
 }
 
-func (g *Great) isClosure() bool {
+func (g *Great) isComparisonFalse() bool {
 	first, second, areBothIntegers := getBothIntegers(g)
 	if areBothIntegers {
 		return first <= second
@@ -271,7 +271,7 @@ func (ge *GreatEq) Simplify() ComparisonForm {
 	return buildComparisonComponentsFrom(ge)
 }
 
-func (ge *GreatEq) isClosure() bool {
+func (ge *GreatEq) isComparisonFalse() bool {
 	first, second, areBothIntegers := getBothIntegers(ge)
 	if areBothIntegers {
 		return first < second
