@@ -28,15 +28,17 @@ func (ce *CounterExample) ToString() string {
 }
 
 func IsArithClosure(form basictypes.Form) bool {
-	switch typed := form.(type) {
-	case basictypes.Not:
-		if predTyped, ok := typed.GetForm().(basictypes.Pred); ok {
-			comparaison, _ := convertPred(predTyped)
-			return !comparaison.isComparisonFalse()
+	if len(form.GetMetas()) == 0 {
+		switch typed := form.(type) {
+		case basictypes.Not:
+			if predTyped, ok := typed.GetForm().(basictypes.Pred); ok {
+				comparaison, _ := convertPred(predTyped)
+				return comparaison.Evaluate()
+			}
+		case basictypes.Pred:
+			comparaison, _ := convertPred(typed)
+			return !comparaison.Evaluate()
 		}
-	case basictypes.Pred:
-		comparaison, _ := convertPred(typed)
-		return comparaison.isComparisonFalse()
 	}
 
 	return false

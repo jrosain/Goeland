@@ -8,13 +8,13 @@ import (
 
 func convertPred(old basictypes.Pred) (result ComparisonForm, termMap map[string]basictypes.Term) {
 	termMap = make(map[string]basictypes.Term)
-	args := []Form{}
+	args := []Evaluable[int]{}
 
 	for _, term := range old.GetArgs() {
-		form, isVariable := convertTerm(term)
+		form, terms := convertTermAndRegisterVariables(term)
 		args = append(args, form)
 
-		if isVariable {
+		for _, term := range terms {
 			termMap[term.ToMappedString(basictypes.DefaultMap, false)] = term
 		}
 	}
@@ -22,6 +22,8 @@ func convertPred(old basictypes.Pred) (result ComparisonForm, termMap map[string
 	switch old.GetID().GetName() {
 	case "=":
 		return NewEq(args[0], args[1]), termMap
+	case "!=":
+		return NewNotEq(args[0], args[1]), termMap
 	case "$lesseq":
 		return NewLessEq(args[0], args[1]), termMap
 	case "$less":
@@ -35,11 +37,55 @@ func convertPred(old basictypes.Pred) (result ComparisonForm, termMap map[string
 	}
 }
 
-func convertTerm(old basictypes.Term) (result Form, isVariable bool) {
-	value, err := strconv.Atoi(old.GetName())
-	if err == nil {
-		return NewConstant(value), false
-	} else {
-		return NewFactor(One, NewVariable(old.ToMappedString(basictypes.DefaultMap, false))), true
+func convertTermAndRegisterVariables(old basictypes.Term) (result Evaluable[int], terms basictypes.TermList) {
+	terms = basictypes.TermList{}
+	name := old.GetName()
+	switch name {
+	case "$sum":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form1, newTerms1 := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			form2, newTerms2 := convertTermAndRegisterVariables(typed.GetArgs()[1])
+			terms = append(terms, newTerms1...)
+			terms = append(terms, newTerms2...)
+			return NewSum(form1, form2), terms
+		}
+
+		return nil, terms
+	case "$difference":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form1, newTerms1 := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			form2, newTerms2 := convertTermAndRegisterVariables(typed.GetArgs()[1])
+			terms = append(terms, newTerms1...)
+			terms = append(terms, newTerms2...)
+			return NewDiff(form1, form2), terms
+		}
+
+		return nil, terms
+	case "$product":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form1, newTerms1 := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			form2, newTerms2 := convertTermAndRegisterVariables(typed.GetArgs()[1])
+			terms = append(terms, newTerms1...)
+			terms = append(terms, newTerms2...)
+			return NewProduct(form1, form2), terms
+		}
+
+		return nil, terms
+	case "$uminus":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form, newTerms := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			terms = append(terms, newTerms...)
+			return NewNeg(form), terms
+		}
+
+		return nil, terms
+	default:
+		value, err := strconv.Atoi(name)
+		if err == nil {
+			return NewConstant(value), terms
+		} else {
+			terms = append(terms, old)
+			return NewFactor(One, NewVariable(old.ToMappedString(basictypes.DefaultMap, false))), terms
+		}
 	}
 }

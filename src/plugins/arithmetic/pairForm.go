@@ -1,9 +1,12 @@
 package arithmetic
 
+import "github.com/GoelandProver/Goeland/global"
+
 type PairOperator string
 
 const (
 	EqOperator      PairOperator = "="
+	DiffOperator    PairOperator = "!="
 	LessOperator    PairOperator = "<"
 	LessEqOperator  PairOperator = "<="
 	GreatOperator   PairOperator = ">"
@@ -16,6 +19,12 @@ const (
 type Paired interface {
 	GetFirst() Form
 	GetSecond() Form
+	GetSymbol() PairOperator
+}
+
+type EvaluablePair[T any] interface {
+	GetFirst() Evaluable[T]
+	GetSecond() Evaluable[T]
 	GetSymbol() PairOperator
 }
 
@@ -83,15 +92,15 @@ func (pf *PairForm[T, U]) GetSymbol() PairOperator {
 }
 
 type Sum struct {
-	*PairForm[Form, Form]
+	*PairForm[Evaluable[int], Evaluable[int]]
 }
 
-func NewSum(first, second Form) *Sum {
+func NewSum(first, second Evaluable[int]) *Sum {
 	return &Sum{NewPairForm(first, second, SumOperator)}
 }
 
-func NewDiff(first, second Form) *Sum {
-	return &Sum{NewPairForm(first, Form(NewNeg(second)), SumOperator)}
+func NewDiff(first, second Evaluable[int]) *Sum {
+	return &Sum{NewPairForm(first, Evaluable[int](NewNeg(second)), SumOperator)}
 }
 
 func (s *Sum) Copy() Form {
@@ -107,7 +116,11 @@ var diff = func(first, second int) int {
 }
 
 func (s *Sum) getFactorMap() map[string]int {
-	return getFactorMapForFunc[Form, Form](s.PairForm, sum)
+	return getFactorMapForFunc[Evaluable[int], Evaluable[int]](s.PairForm, sum)
+}
+
+func (s *Sum) Evaluate() int {
+	return s.first.Evaluate() + s.second.Evaluate()
 }
 
 func getFactorMapForFunc[T, U Form](pf *PairForm[T, U], op func(int, int) int) map[string]int {
@@ -131,11 +144,22 @@ func getFactorMapForFunc[T, U Form](pf *PairForm[T, U], op func(int, int) int) m
 }
 
 type Factor struct {
-	*PairForm[*Constant, Form]
+	*PairForm[*Constant, Evaluable[int]]
 }
 
-func NewFactor(factor *Constant, value Form) *Factor {
-	return &Factor{NewPairForm[*Constant, Form](factor, value, NoOperator)}
+func NewProduct(first, second Evaluable[int]) *Factor {
+	if typed, ok := first.(*Constant); ok {
+		return NewFactor(typed, second)
+	} else if typed, ok := second.(*Constant); ok {
+		return NewFactor(typed, first)
+	} else {
+		global.PrintPanic("ARI", "Trying to make a product that has two variables. This is forbidden, non-linear arithmetic formulas are not supported.")
+		return nil
+	}
+}
+
+func NewFactor(factor *Constant, value Evaluable[int]) *Factor {
+	return &Factor{NewPairForm[*Constant, Evaluable[int]](factor, value, NoOperator)}
 }
 
 func (f *Factor) Copy() Form {
@@ -151,4 +175,8 @@ func (f *Factor) getFactorMap() map[string]int {
 	}
 
 	return factorMap
+}
+
+func (f *Factor) Evaluate() int {
+	return f.first.Evaluate() * f.second.Evaluate()
 }

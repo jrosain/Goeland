@@ -1,16 +1,15 @@
 package arithmetic
 
 type ComparisonForm interface {
-	Form
-	Paired
+	Evaluable[bool]
+	EvaluablePair[int]
 	Normalize() ComparisonForm
 	Reverse() ComparisonForm
 	Equalize() ComparisonForm
 	Simplify() ComparisonForm
-	isComparisonFalse() bool
 }
 
-func NewComparaisonForm(first, second Form, symbol PairOperator) ComparisonForm {
+func NewComparaisonForm(first, second Evaluable[int], symbol PairOperator) ComparisonForm {
 	switch symbol {
 	case EqOperator:
 		return NewEq(first, second)
@@ -33,7 +32,7 @@ func buildComparisonComponentsFrom(compForm ComparisonForm) ComparisonForm {
 
 	firstDone := false
 	var constant *Constant
-	var form Form
+	var form Evaluable[int]
 
 	for k, v := range factorMap {
 		factor := NewConstant(v)
@@ -51,10 +50,10 @@ func buildComparisonComponentsFrom(compForm ComparisonForm) ComparisonForm {
 }
 
 type Eq struct {
-	*PairForm[Form, Form]
+	*PairForm[Evaluable[int], Evaluable[int]]
 }
 
-func NewEq(first, second Form) *Eq {
+func NewEq(first, second Evaluable[int]) *Eq {
 	return &Eq{NewPairForm(first, second, EqOperator)}
 }
 
@@ -67,7 +66,11 @@ func (e *Eq) Copy() Form {
 }
 
 func (e *Eq) getFactorMap() map[string]int {
-	return getFactorMapForFunc[Form, Form](e.PairForm, diff)
+	return getFactorMapForFunc[Evaluable[int], Evaluable[int]](e.PairForm, diff)
+}
+
+func (e *Eq) Evaluate() bool {
+	return e.first.Evaluate() == e.second.Evaluate()
 }
 
 func (e *Eq) Normalize() ComparisonForm {
@@ -86,25 +89,51 @@ func (e *Eq) Simplify() ComparisonForm {
 	return buildComparisonComponentsFrom(e)
 }
 
-func (e *Eq) isComparisonFalse() bool {
-	return !e.first.Equals(e.second)
+type NotEq struct {
+	*PairForm[Evaluable[int], Evaluable[int]]
 }
 
-func getBothIntegers(comp ComparisonForm) (first int, second int, areBothInts bool) {
-	if firstTyped, ok := comp.GetFirst().(*Constant); ok {
-		if secondTyped, ok := comp.GetSecond().(*Constant); ok {
-			return int(firstTyped.value), int(secondTyped.value), true
-		}
-	}
+func NewNotEq(first, second Evaluable[int]) *NotEq {
+	return &NotEq{NewPairForm(first, second, EqOperator)}
+}
 
-	return 0, 0, false
+func (d *NotEq) TrueCopy() *NotEq {
+	return &NotEq{d.PairForm.TrueCopy()}
+}
+
+func (d *NotEq) Copy() Form {
+	return d.TrueCopy()
+}
+
+func (d *NotEq) getFactorMap() map[string]int {
+	return getFactorMapForFunc[Evaluable[int], Evaluable[int]](d.PairForm, diff)
+}
+
+func (d *NotEq) Evaluate() bool {
+	return d.first.Evaluate() == d.second.Evaluate()
+}
+
+func (d *NotEq) Normalize() ComparisonForm {
+	return NewEq(NewSum(d.first, NewNeg(d.second)), Zero)
+}
+
+func (d *NotEq) Reverse() ComparisonForm {
+	return d.TrueCopy()
+}
+
+func (d *NotEq) Equalize() ComparisonForm {
+	return d.TrueCopy()
+}
+
+func (d *NotEq) Simplify() ComparisonForm {
+	return buildComparisonComponentsFrom(d)
 }
 
 type Less struct {
-	*PairForm[Form, Form]
+	*PairForm[Evaluable[int], Evaluable[int]]
 }
 
-func NewLess(first, second Form) *Less {
+func NewLess(first, second Evaluable[int]) *Less {
 	return &Less{NewPairForm(first, second, LessOperator)}
 }
 
@@ -117,7 +146,11 @@ func (l *Less) Copy() Form {
 }
 
 func (l *Less) getFactorMap() map[string]int {
-	return getFactorMapForFunc[Form, Form](l.PairForm, diff)
+	return getFactorMapForFunc[Evaluable[int], Evaluable[int]](l.PairForm, diff)
+}
+
+func (l *Less) Evaluate() bool {
+	return l.first.Evaluate() < l.second.Evaluate()
 }
 
 func (l *Less) Normalize() ComparisonForm {
@@ -136,20 +169,11 @@ func (l *Less) Simplify() ComparisonForm {
 	return buildComparisonComponentsFrom(l)
 }
 
-func (l *Less) isComparisonFalse() bool {
-	first, second, areBothIntegers := getBothIntegers(l)
-	if areBothIntegers {
-		return first >= second
-	}
-
-	return false
-}
-
 type LessEq struct {
-	*PairForm[Form, Form]
+	*PairForm[Evaluable[int], Evaluable[int]]
 }
 
-func NewLessEq(first, second Form) *LessEq {
+func NewLessEq(first, second Evaluable[int]) *LessEq {
 	return &LessEq{NewPairForm(first, second, LessEqOperator)}
 }
 
@@ -162,7 +186,11 @@ func (le *LessEq) Copy() Form {
 }
 
 func (le *LessEq) getFactorMap() map[string]int {
-	return getFactorMapForFunc[Form, Form](le.PairForm, diff)
+	return getFactorMapForFunc[Evaluable[int], Evaluable[int]](le.PairForm, diff)
+}
+
+func (le *LessEq) Evaluate() bool {
+	return le.first.Evaluate() <= le.second.Evaluate()
 }
 
 func (le *LessEq) Normalize() ComparisonForm {
@@ -181,20 +209,11 @@ func (le *LessEq) Simplify() ComparisonForm {
 	return buildComparisonComponentsFrom(le)
 }
 
-func (le *LessEq) isComparisonFalse() bool {
-	first, second, areBothIntegers := getBothIntegers(le)
-	if areBothIntegers {
-		return first > second
-	}
-
-	return false
-}
-
 type Great struct {
-	*PairForm[Form, Form]
+	*PairForm[Evaluable[int], Evaluable[int]]
 }
 
-func NewGreat(first, second Form) *Great {
+func NewGreat(first, second Evaluable[int]) *Great {
 	return &Great{NewPairForm(first, second, GreatOperator)}
 }
 
@@ -207,7 +226,11 @@ func (g *Great) Copy() Form {
 }
 
 func (g *Great) getFactorMap() map[string]int {
-	return getFactorMapForFunc[Form, Form](g.PairForm, diff)
+	return getFactorMapForFunc[Evaluable[int], Evaluable[int]](g.PairForm, diff)
+}
+
+func (g *Great) Evaluate() bool {
+	return g.first.Evaluate() > g.second.Evaluate()
 }
 
 func (g *Great) Normalize() ComparisonForm {
@@ -226,20 +249,11 @@ func (g *Great) Simplify() ComparisonForm {
 	return buildComparisonComponentsFrom(g)
 }
 
-func (g *Great) isComparisonFalse() bool {
-	first, second, areBothIntegers := getBothIntegers(g)
-	if areBothIntegers {
-		return first <= second
-	}
-
-	return false
-}
-
 type GreatEq struct {
-	*PairForm[Form, Form]
+	*PairForm[Evaluable[int], Evaluable[int]]
 }
 
-func NewGreatEq(first, second Form) *GreatEq {
+func NewGreatEq(first, second Evaluable[int]) *GreatEq {
 	return &GreatEq{NewPairForm(first, second, GreatEqOperator)}
 }
 
@@ -252,7 +266,11 @@ func (ge *GreatEq) Copy() Form {
 }
 
 func (ge *GreatEq) getFactorMap() map[string]int {
-	return getFactorMapForFunc[Form, Form](ge.PairForm, diff)
+	return getFactorMapForFunc[Evaluable[int], Evaluable[int]](ge.PairForm, diff)
+}
+
+func (ge *GreatEq) Evaluate() bool {
+	return ge.first.Evaluate() >= ge.second.Evaluate()
 }
 
 func (ge *GreatEq) Normalize() ComparisonForm {
@@ -269,13 +287,4 @@ func (ge *GreatEq) Equalize() ComparisonForm {
 
 func (ge *GreatEq) Simplify() ComparisonForm {
 	return buildComparisonComponentsFrom(ge)
-}
-
-func (ge *GreatEq) isComparisonFalse() bool {
-	first, second, areBothIntegers := getBothIntegers(ge)
-	if areBothIntegers {
-		return first < second
-	}
-
-	return false
 }

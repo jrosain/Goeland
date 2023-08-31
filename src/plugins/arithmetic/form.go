@@ -11,6 +11,11 @@ type Form interface {
 	getFactorMap() map[string]int
 }
 
+type Evaluable[T any] interface {
+	Form
+	Evaluate() T
+}
+
 type Integer int
 
 func (i Integer) ToString() string {
@@ -30,6 +35,10 @@ func (i Integer) Copy() Form {
 
 func (i Integer) getFactorMap() map[string]int {
 	return make(map[string]int)
+}
+
+func (i Integer) Evaluate() int {
+	return int(i)
 }
 
 type String string
@@ -114,6 +123,10 @@ func (c *Constant) getFactorMap() map[string]int {
 	return factorMap
 }
 
+func (c *Constant) Evaluate() int {
+	return c.value.Evaluate()
+}
+
 type Variable struct {
 	*SimpleForm[String]
 }
@@ -132,11 +145,16 @@ func (v *Variable) getFactorMap() map[string]int {
 	return factorMap
 }
 
-type Neg struct {
-	*SimpleForm[Form]
+func (v *Variable) Evaluate() int {
+	global.PrintPanic("ARI", "Trying to evaluate a Variable, this should never happen")
+	return 0
 }
 
-func NewNeg(value Form) Form {
+type Neg struct {
+	*SimpleForm[Evaluable[int]]
+}
+
+func NewNeg(value Evaluable[int]) Evaluable[int] {
 	switch typed := value.(type) {
 	case *Neg:
 		return typed.value
@@ -168,4 +186,8 @@ func (n *Neg) getFactorMap() map[string]int {
 	}
 
 	return factorMap
+}
+
+func (n *Neg) Evaluate() int {
+	return -n.value.Evaluate()
 }
