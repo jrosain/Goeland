@@ -10,35 +10,33 @@ This is a useful task manager that will execute tasks one by one in the same gor
 It is safe to try to add another task as part of a task.
 */
 type SyncTaskList struct {
-	mutex sync.Mutex
-	tasks []func()
+	mutex  sync.Mutex
+	tasks  []func()
+	buffer []func()
 }
 
 func (stl *SyncTaskList) AddTask(task func()) {
 	stl.mutex.Lock()
-	if len(stl.tasks) == 0 {
+	if len(stl.buffer) == 0 {
 		defer stl.doTasks()
 	}
 	defer stl.mutex.Unlock()
 
-	stl.tasks = append(stl.tasks, task)
+	stl.buffer = append(stl.buffer, task)
 }
 
 func (stl *SyncTaskList) doTasks() {
-	stl.mutex.Lock()
-	defer stl.mutex.Unlock()
+	stl.swapBuffer()
 
-	for len(stl.tasks) > 0 {
-		firstTask := stl.getFirstTask()
-		stl.mutex.Unlock()
-		firstTask()
-		stl.mutex.Lock()
+	for _, task := range stl.tasks {
+		task()
 	}
 }
 
-func (stl *SyncTaskList) getFirstTask() func() {
-	current := stl.tasks[0]
-	stl.tasks = stl.tasks[1:]
+func (stl *SyncTaskList) swapBuffer() {
+	stl.mutex.Lock()
+	defer stl.mutex.Unlock()
 
-	return current
+	stl.tasks = stl.buffer
+	stl.buffer = []func(){}
 }
