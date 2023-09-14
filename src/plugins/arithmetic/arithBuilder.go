@@ -99,6 +99,7 @@ func GetCounterExample(formNetworks []basictypes.FormAndTermsList) (example Coun
 
 	for i, network := range allNetworks {
 		if example, success = tryConstraintNetwork(network, termMap); success {
+			println("OK")
 			return example, allForms[i], true
 		}
 	}
@@ -164,12 +165,20 @@ func getAllNetworks(networks []Network, forms []basictypes.FormAndTermsList) ([]
 func tryConstraintNetwork(network Network, termMap map[string]basictypes.Term) (example CounterExample, success bool) {
 	networkFile := "network.lp"
 	solutionFile := "solution.out"
-	buildFile(network, networkFile)
+
+	terms := make([]string, len(termMap))
+	i := 0
+	for k := range termMap {
+		terms[i] = k
+		i++
+	}
+
+	buildFile(network, networkFile, terms)
 	runHiGHS(networkFile, solutionFile)
 	return gatherData(solutionFile, termMap)
 }
 
-func buildFile(network Network, networkFile string) {
+func buildFile(network Network, networkFile string, terms []string) {
 	f, err := os.Create(networkFile)
 	if err != nil {
 		global.PrintFatal("ARI", err.Error())
@@ -178,6 +187,10 @@ func buildFile(network Network, networkFile string) {
 
 	str := "Subject To\n"
 	str += network.ToString()
+	str += "Bounds\n"
+	for _, term := range terms {
+		str += term + " free\n"
+	}
 	str += "End"
 
 	_, err = f.WriteString(str)
