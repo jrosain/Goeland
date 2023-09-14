@@ -42,6 +42,7 @@ import (
 
 	treetypes "github.com/GoelandProver/Goeland/code-trees/tree-types"
 	"github.com/GoelandProver/Goeland/global"
+	"github.com/GoelandProver/Goeland/plugins/arithmetic"
 	"github.com/GoelandProver/Goeland/plugins/equality"
 	typing "github.com/GoelandProver/Goeland/polymorphism/typing"
 	basictypes "github.com/GoelandProver/Goeland/types/basic-types"
@@ -479,6 +480,7 @@ func proofSearchDestructive(father_id uint64, st complextypes.State, cha Communi
 	case quit := <-cha.quit:
 		manageQuitOrder(quit, cha, father_id, st, nil, st.GetSubstsFound(), node_id, original_node_id, nil, meta_to_reintroduce)
 	default:
+
 		err := complextypes.ApplySubstitution(&st, s)
 		if err != nil {
 			global.PrintError("PSD", "There was an error when merging substitutions. What to do?")
@@ -493,13 +495,25 @@ func proofSearchDestructive(father_id uint64, st complextypes.State, cha Communi
 		}
 
 		if !global.GetAssisted() {
-			for _, f := range st.GetAtomic() {
+			atomics := st.GetAtomic()
+
+			for _, f := range atomics {
 				global.PrintDebug("PS", fmt.Sprintf("##### Formula %v #####", f.ToString()))
 				// Check if exists a contradiction after applying the substitution
 				clos_res_after_apply_subst, subst_after_apply_subst := ApplyClosureRules(f.GetForm(), &st)
 				if clos_res_after_apply_subst {
 					ManageClosureRule(father_id, &st, cha, treetypes.CopySubstList(subst_after_apply_subst), f.Copy(), node_id, original_node_id)
 					return
+				}
+			}
+
+			if global.GetArithModule() && arithmetic.IsArithmeticable(atomics) {
+				subs, form, success := arithmetic.GetArithResult(atomics)
+				if success {
+					ManageClosureRuleNoArith(father_id, &st, cha, subs, form.Copy(), node_id, original_node_id)
+					return
+				} else {
+					arithmetic.Manager.OpenBranch()
 				}
 			}
 		}

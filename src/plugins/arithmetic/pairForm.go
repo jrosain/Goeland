@@ -1,6 +1,8 @@
 package arithmetic
 
-import "github.com/GoelandProver/Goeland/global"
+import (
+	"github.com/GoelandProver/Goeland/global"
+)
 
 type PairOperator string
 
@@ -28,13 +30,13 @@ type EvaluablePair[T any] interface {
 	GetSymbol() PairOperator
 }
 
-type PairForm[T, U Form] struct {
+type PairForm[T, U Evaluable[int]] struct {
 	first  T
 	second U
 	symbol PairOperator
 }
 
-func NewPairForm[T, U Form](first T, second U, symbol PairOperator) *PairForm[T, U] {
+func NewPairForm[T, U Evaluable[int]](first T, second U, symbol PairOperator) *PairForm[T, U] {
 	return &PairForm[T, U]{first, second, symbol}
 }
 
@@ -69,10 +71,10 @@ func (pf *PairForm[T, U]) getFactorMap() map[string]int {
 	return factorMap
 }
 
-func (pf *PairForm[T, U]) TrueCopy() *PairForm[T, U] {
-	if typedFirst, ok := pf.first.Copy().(T); ok {
-		if typedSecond, ok := pf.second.Copy().(U); ok {
-			return NewPairForm[T, U](typedFirst, typedSecond, pf.symbol)
+func (pf *PairForm[T, U]) TrueCopy() *PairForm[Evaluable[int], Evaluable[int]] {
+	if typedFirst, ok := pf.first.Copy().(Evaluable[int]); ok {
+		if typedSecond, ok := pf.second.Copy().(Evaluable[int]); ok {
+			return NewPairForm[Evaluable[int], Evaluable[int]](typedFirst, typedSecond, pf.symbol)
 		}
 	}
 
@@ -123,7 +125,7 @@ func (s *Sum) Evaluate() int {
 	return s.first.Evaluate() + s.second.Evaluate()
 }
 
-func getFactorMapForFunc[T, U Form](pf *PairForm[T, U], op func(int, int) int) map[string]int {
+func getFactorMapForFunc[T, U Evaluable[int]](pf *PairForm[T, U], op func(int, int) int) map[string]int {
 	factorMap := make(map[string]int)
 	firstChildMap := pf.GetFirst().getFactorMap()
 	secondChildMap := pf.GetSecond().getFactorMap()
@@ -144,7 +146,7 @@ func getFactorMapForFunc[T, U Form](pf *PairForm[T, U], op func(int, int) int) m
 }
 
 type Factor struct {
-	*PairForm[*Constant, Evaluable[int]]
+	*PairForm[Evaluable[int], Evaluable[int]]
 }
 
 func NewProduct(first, second Evaluable[int]) *Factor {
@@ -159,7 +161,7 @@ func NewProduct(first, second Evaluable[int]) *Factor {
 }
 
 func NewFactor(factor *Constant, value Evaluable[int]) *Factor {
-	return &Factor{NewPairForm[*Constant, Evaluable[int]](factor, value, NoOperator)}
+	return &Factor{NewPairForm[Evaluable[int], Evaluable[int]](factor, value, NoOperator)}
 }
 
 func (f *Factor) Copy() Form {
@@ -171,7 +173,7 @@ func (f *Factor) getFactorMap() map[string]int {
 	childMap := f.GetSecond().getFactorMap()
 
 	for k, v := range childMap {
-		factorMap[k] = v * int(f.first.value)
+		factorMap[k] = v * int(f.first.Evaluate())
 	}
 
 	return factorMap

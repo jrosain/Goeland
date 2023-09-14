@@ -3,8 +3,17 @@ package arithmetic
 import (
 	"strconv"
 
+	typing "github.com/GoelandProver/Goeland/polymorphism/typing"
 	basictypes "github.com/GoelandProver/Goeland/types/basic-types"
 )
+
+var constantMap map[int]basictypes.Term = make(map[int]basictypes.Term)
+
+func addToConstantMap(value int) {
+	if _, ok := constantMap[value]; !ok {
+		constantMap[value] = basictypes.MakerFun(basictypes.MakerId(strconv.Itoa(value)), basictypes.MakeEmptyTermList(), []typing.TypeApp{}, typing.MkTypeHint("$int"))
+	}
+}
 
 func convertPred(old basictypes.Pred) (result ComparisonForm, termMap map[string]basictypes.Term) {
 	termMap = make(map[string]basictypes.Term)
@@ -15,7 +24,7 @@ func convertPred(old basictypes.Pred) (result ComparisonForm, termMap map[string
 		args = append(args, form)
 
 		for _, term := range terms {
-			termMap[term.ToMappedString(basictypes.DefaultMap, false)] = term
+			termMap[varPrefix+term.ToMappedString(basictypes.DefaultMap, false)] = term
 		}
 	}
 
@@ -82,6 +91,7 @@ func convertTermAndRegisterVariables(old basictypes.Term) (result Evaluable[int]
 	default:
 		value, err := strconv.Atoi(name)
 		if err == nil {
+			constantMap[value] = old
 			return NewConstant(value), terms
 		} else {
 			terms = append(terms, old)

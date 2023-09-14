@@ -27,8 +27,10 @@ func NewComparaisonForm(first, second Evaluable[int], symbol PairOperator) Compa
 }
 
 func buildComparisonComponentsFrom(compForm ComparisonForm) ComparisonForm {
-	formatted := compForm.Normalize().Reverse().Equalize()
-	factorMap := formatted.getFactorMap()
+	normalized := compForm.Normalize()
+	reversed := normalized.Reverse()
+	equalized := reversed.Equalize()
+	factorMap := equalized.getFactorMap()
 
 	firstDone := false
 	var constant *Constant
@@ -43,10 +45,11 @@ func buildComparisonComponentsFrom(compForm ComparisonForm) ComparisonForm {
 			form = NewSum(form, NewFactor(factor, NewVariable(k)))
 		} else {
 			form = NewFactor(factor, NewVariable(k))
+			firstDone = true
 		}
 	}
 
-	return NewComparaisonForm(form, NewNeg(constant), formatted.GetSymbol())
+	return NewComparaisonForm(form, NewNeg(constant), equalized.GetSymbol())
 }
 
 type Eq struct {

@@ -115,6 +115,10 @@ func NewConstant(value int) *Constant {
 	return &Constant{NewSimpleForm(Integer(value))}
 }
 
+func (c *Constant) Copy() Form {
+	return &Constant{c.SimpleForm.TrueCopy()}
+}
+
 func (c *Constant) getFactorMap() map[string]int {
 	factorMap := make(map[string]int)
 
@@ -127,6 +131,8 @@ func (c *Constant) Evaluate() int {
 	return c.value.Evaluate()
 }
 
+const varPrefix string = ""
+
 type Variable struct {
 	*SimpleForm[String]
 }
@@ -134,7 +140,11 @@ type Variable struct {
 var Unit *Variable = NewVariable("")
 
 func NewVariable(value string) *Variable {
-	return &Variable{NewSimpleForm(String(value))}
+	return &Variable{NewSimpleForm(String(varPrefix + value))}
+}
+
+func (v *Variable) Copy() Form {
+	return &Variable{v.SimpleForm.TrueCopy()}
 }
 
 func (v *Variable) getFactorMap() map[string]int {

@@ -42,3 +42,7 @@ func (sc *SyncCounter) Decrement() {
 func (sc *SyncCounter) SetWhenFinished(whenFinished func()) {
 	sc.WhenFinished = whenFinished
 }
+
+func (sc *SyncCounter) Value() int {
+	return sc.counter
+}

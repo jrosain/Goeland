@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	treetypes "github.com/GoelandProver/Goeland/code-trees/tree-types"
 	"github.com/GoelandProver/Goeland/global"
 	basictypes "github.com/GoelandProver/Goeland/types/basic-types"
 )
@@ -27,8 +28,23 @@ func (ce *CounterExample) ToString() string {
 	return str[:len(str)-2]
 }
 
+func (ce *CounterExample) convert() treetypes.Substitutions {
+	result := treetypes.MakeEmptySubstitution()
+
+	for i := range ce.Variables {
+		if meta, ok := ce.Variables[i].(basictypes.Meta); ok {
+			addToConstantMap(ce.Values[i])
+			result = append(result, treetypes.MakeSubstitution(meta, constantMap[ce.Values[i]]))
+		}
+	}
+
+	return result
+}
+
 func IsArithClosure(form basictypes.Form) bool {
-	if len(form.GetMetas()) == 0 {
+	metas := form.GetMetas()
+
+	if len(metas) == 0 {
 		switch typed := form.(type) {
 		case basictypes.Not:
 			if predTyped, ok := typed.GetForm().(basictypes.Pred); ok {
@@ -44,32 +60,76 @@ func IsArithClosure(form basictypes.Form) bool {
 	return false
 }
 
-func GetCounterExample(formNetworks [][]basictypes.Pred) (example CounterExample, success bool) {
-	constraintNetwork, termMap := buildConstraintNetwork(formNetworks)
-	allNetworks := getAllNetworks(constraintNetwork)
-
-	for _, network := range allNetworks {
-		if example, success = tryConstraintNetwork(network, termMap); success {
-			return example, true
+func IsArithmeticable(forms basictypes.FormAndTermsList) bool {
+	for _, form := range forms.ExtractForms() {
+		switch typed := form.(type) {
+		case basictypes.Not:
+			if predTyped, ok := typed.GetForm().(basictypes.Pred); ok {
+				if converted, _ := convertPred(predTyped); converted != nil {
+					return true
+				}
+			}
+		case basictypes.Pred:
+			if converted, _ := convertPred(typed); converted != nil {
+				return true
+			}
 		}
 	}
 
-	return CounterExample{}, false
+	return false
 }
 
-func buildConstraintNetwork(predNetworks [][]basictypes.Pred) ([]Network, map[string]basictypes.Term) {
+func GetArithResult(forms basictypes.FormAndTermsList) (subs []treetypes.Substitutions, form basictypes.FormAndTerms, success bool) {
+	channel := make(chan *SubAnswer)
+	go Manager.GetArithResult(channel, forms)
+	answer := <-channel
+
+	if answer.success {
+		success = true
+		subs = []treetypes.Substitutions{answer.sub}
+		form = answer.form
+	}
+
+	return subs, form, success
+}
+
+func GetCounterExample(formNetworks []basictypes.FormAndTermsList) (example CounterExample, formsUsed basictypes.FormAndTermsList, success bool) {
+	constraintNetwork, termMap := buildConstraintNetwork(formNetworks)
+	allNetworks, allForms := getAllNetworks(constraintNetwork, formNetworks)
+
+	for i, network := range allNetworks {
+		if example, success = tryConstraintNetwork(network, termMap); success {
+			return example, allForms[i], true
+		}
+	}
+
+	return CounterExample{}, basictypes.FormAndTermsList{}, false
+}
+
+func buildConstraintNetwork(formNetworks []basictypes.FormAndTermsList) ([]Network, map[string]basictypes.Term) {
 	networks := []Network{}
 	termMap := make(map[string]basictypes.Term)
 
-	for _, predNetwork := range predNetworks {
+	for _, formNetwork := range formNetworks {
 		network := Network{}
-		for _, pred := range predNetwork {
-			form, newMap := convertPred(pred)
-			network = append(network, form.Simplify())
-
-			for k, v := range newMap {
-				termMap[k] = v
+		for _, form := range formNetwork {
+			switch typed := form.GetForm().(type) {
+			case basictypes.Pred:
+				form, newMap := convertPred(typed)
+				network = append(network, form.Simplify())
+				for k, v := range newMap {
+					termMap[k] = v
+				}
+			case basictypes.Not:
+				if pred, ok := typed.GetForm().(basictypes.Pred); ok {
+					form, newMap := convertPred(pred)
+					network = append(network, form.Reverse().Simplify())
+					for k, v := range newMap {
+						termMap[k] = v
+					}
+				}
 			}
+
 		}
 		networks = append(networks, network)
 	}
@@ -77,20 +137,27 @@ func buildConstraintNetwork(predNetworks [][]basictypes.Pred) ([]Network, map[st
 	return networks, termMap
 }
 
-func getAllNetworks(networks []Network) []Network {
+func getAllNetworks(networks []Network, forms []basictypes.FormAndTermsList) ([]Network, []basictypes.FormAndTermsList) {
 	if len(networks) == 0 {
-		return []Network{{}}
+		return []Network{{}}, []basictypes.FormAndTermsList{{}}
 	} else {
-		nexts := getAllNetworks(networks[1:])
-		result := []Network{}
+		nextsNetworks, nextsForms := getAllNetworks(networks[1:], forms[1:])
+		resNetworks := []Network{}
+		resForms := []basictypes.FormAndTermsList{}
 
 		for _, constraint := range networks[0] {
-			for _, next := range nexts {
-				result = append(result, append(next, constraint))
+			for _, next := range nextsNetworks {
+				resNetworks = append(resNetworks, append(next, constraint))
 			}
 		}
 
-		return result
+		for _, form := range forms[0] {
+			for _, next := range nextsForms {
+				resForms = append(resForms, append(next, form))
+			}
+		}
+
+		return resNetworks, resForms
 	}
 }
 

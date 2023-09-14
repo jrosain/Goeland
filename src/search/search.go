@@ -50,6 +50,7 @@ import (
 	treesearch "github.com/GoelandProver/Goeland/code-trees/tree-search"
 	treetypes "github.com/GoelandProver/Goeland/code-trees/tree-types"
 	"github.com/GoelandProver/Goeland/global"
+	"github.com/GoelandProver/Goeland/plugins/arithmetic"
 	"github.com/GoelandProver/Goeland/plugins/coq"
 	dmt "github.com/GoelandProver/Goeland/plugins/dmt"
 	basictypes "github.com/GoelandProver/Goeland/types/basic-types"
@@ -81,6 +82,10 @@ func doOneStep(limit int, formula basictypes.Form) (bool, int) {
 	basictypes.ResetMeta()
 	proof.ResetProofFile()
 	visualization.ResetExchangesFile()
+
+	if global.GetArithModule() {
+		arithmetic.Manager = arithmetic.NewArithManager()
+	}
 
 	global.PrintInfo("MAIN", fmt.Sprintf("nb_step : %v - limit : %v", global.GetNbStep(), limit))
 
@@ -269,10 +274,17 @@ func retrieveMetaFromSubst(s treetypes.Substitutions) []int {
 /**
 * clos_res and subst are the result of applyClosureRule.
 * Manage this result, dispatch the subst and recreate data strcutures.
-* Return if the branch is closed without variable from its father
+* Return if the branch is closed without variable from its fatherReplace
 **/
 func ManageClosureRule(father_id uint64, st *complextypes.State, c Communication, substs []treetypes.Substitutions, f basictypes.FormAndTerms, node_id int, original_node_id int) (bool, []complextypes.SubstAndForm) {
+	if global.GetArithModule() {
+		arithmetic.Manager.BranchClosure()
+	}
 
+	return ManageClosureRuleNoArith(father_id, st, c, substs, f, node_id, original_node_id)
+}
+
+func ManageClosureRuleNoArith(father_id uint64, st *complextypes.State, c Communication, substs []treetypes.Substitutions, f basictypes.FormAndTerms, node_id int, original_node_id int) (bool, []complextypes.SubstAndForm) {
 	mm := append(st.GetMM(), complextypes.GetMetaFromSubst(st.GetAppliedSubst().GetSubst())...)
 	substs_with_mm, substs_without_mm := complextypes.DispatchSubst(treetypes.CopySubstList(substs), mm)
 
@@ -291,7 +303,7 @@ func ManageClosureRule(father_id uint64, st *complextypes.State, c Communication
 
 		st.SetSubstsFound([]complextypes.SubstAndForm{st.GetAppliedSubst()})
 
-		// Proof
+		// ProofsendSubToFather
 		st.SetCurrentProofRule("⊙")
 		st.SetCurrentProofRuleName("CLOSURE")
 		st.SetCurrentProofFormula(f)
@@ -543,6 +555,12 @@ func manageBetaRules(fatherId uint64, state complextypes.State, c Communication,
 	}
 	state.SetCurrentProofResultFormulas(intFormLists)
 	state.SetBTOnFormulas(false)
+
+	if global.GetArithModule() {
+		for i := 0; i < len(intFormLists)-1; i++ {
+			arithmetic.Manager.OpenBranch()
+		}
+	}
 
 	// For each child, launch a goroutine, stock its channel, and wait an answer
 	var channels []Communication
