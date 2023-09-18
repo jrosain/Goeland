@@ -95,10 +95,13 @@ func ApplyClosureRules(form basictypes.Form, state *complextypes.State) (bool, [
 	f := complextypes.ApplySubstitutionsOnFormula(state.GetAppliedSubst().GetSubst(), form.Copy())
 
 	result := false
-	substFound, subst := searchInequalities(f)
-	if substFound {
-		result = true
-		substitutions = append(substitutions, subst)
+
+	if !global.GetArithModule() {
+		substFound, subst := searchInequalities(f)
+		if substFound {
+			result = true
+			substitutions = append(substitutions, subst)
+		}
 	}
 
 	substFound, matchSubsts := searchClosureRule(f, *state)

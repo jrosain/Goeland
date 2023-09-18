@@ -56,20 +56,22 @@ func (am *ArithManager) GetArithResult(channel chan *SubAnswer, forms basictypes
 }
 
 func (am *ArithManager) SendSubstitutions() {
-	example, forms, success := GetCounterExample(am.forms)
-	var result treetypes.Substitutions
+	if len(am.forms) > 0 {
+		example, forms, success := GetCounterExample(am.forms)
+		var result treetypes.Substitutions
 
-	if success {
-		result = example.convert()
-		for i, channel := range am.communications {
-			channel <- (&SubAnswer{result, forms[i], true})
+		if success {
+			result = example.convert()
+			for i, channel := range am.communications {
+				channel <- (&SubAnswer{result, forms[i], true})
+			}
+		} else {
+			for _, channel := range am.communications {
+				channel <- (&SubAnswer{nil, basictypes.FormAndTerms{}, false})
+			}
 		}
-	} else {
-		for _, channel := range am.communications {
-			channel <- (&SubAnswer{nil, basictypes.FormAndTerms{}, false})
-		}
+
+		am.communications = []chan *SubAnswer{}
+		am.forms = []basictypes.FormAndTermsList{}
 	}
-
-	am.communications = []chan *SubAnswer{}
-	am.forms = []basictypes.FormAndTermsList{}
 }

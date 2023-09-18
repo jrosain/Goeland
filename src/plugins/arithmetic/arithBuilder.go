@@ -34,7 +34,7 @@ func (ce *CounterExample) convert() treetypes.Substitutions {
 	for i := range ce.Variables {
 		if meta, ok := ce.Variables[i].(basictypes.Meta); ok {
 			addToConstantMap(ce.Values[i])
-			result = append(result, treetypes.MakeSubstitution(meta, constantMap[ce.Values[i]]))
+			result = append(result, treetypes.MakeSubstitution(meta, getValueTerm(ce.Values[i])))
 		}
 	}
 
@@ -99,7 +99,6 @@ func GetCounterExample(formNetworks []basictypes.FormAndTermsList) (example Coun
 
 	for i, network := range allNetworks {
 		if example, success = tryConstraintNetwork(network, termMap); success {
-			println("OK")
 			return example, allForms[i], true
 		}
 	}

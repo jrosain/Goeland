@@ -2,17 +2,37 @@ package arithmetic
 
 import (
 	"strconv"
+	"sync"
 
 	typing "github.com/GoelandProver/Goeland/polymorphism/typing"
 	basictypes "github.com/GoelandProver/Goeland/types/basic-types"
 )
 
 var constantMap map[int]basictypes.Term = make(map[int]basictypes.Term)
+var constantMapMutex sync.Mutex
 
 func addToConstantMap(value int) {
+	constantMapMutex.Lock()
+	defer constantMapMutex.Unlock()
+
 	if _, ok := constantMap[value]; !ok {
 		constantMap[value] = basictypes.MakerFun(basictypes.MakerId(strconv.Itoa(value)), basictypes.MakeEmptyTermList(), []typing.TypeApp{}, typing.MkTypeHint("$int"))
 	}
+}
+
+func setToConstantMap(key int, value basictypes.Term) {
+	constantMapMutex.Lock()
+	defer constantMapMutex.Unlock()
+
+	constantMap[key] = value
+}
+
+func getValueTerm(value int) basictypes.Term {
+	constantMapMutex.Lock()
+	defer constantMapMutex.Unlock()
+
+	result := constantMap[value]
+	return result
 }
 
 func convertPred(old basictypes.Pred) (result ComparisonForm, termMap map[string]basictypes.Term) {
@@ -91,7 +111,7 @@ func convertTermAndRegisterVariables(old basictypes.Term) (result Evaluable[int]
 	default:
 		value, err := strconv.Atoi(name)
 		if err == nil {
-			constantMap[value] = old
+			setToConstantMap(value, old)
 			return NewConstant(value), terms
 		} else {
 			terms = append(terms, old)
