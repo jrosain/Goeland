@@ -172,12 +172,12 @@ func tryConstraintNetwork(network Network, termMap map[string]basictypes.Term) (
 		i++
 	}
 
-	buildFile(network, networkFile, terms)
+	buildFile(network, networkFile, termMap)
 	runHiGHS(networkFile, solutionFile)
 	return gatherData(solutionFile, termMap)
 }
 
-func buildFile(network Network, networkFile string, terms []string) {
+func buildFile(network Network, networkFile string, terms map[string]basictypes.Term) {
 	f, err := os.Create(networkFile)
 	if err != nil {
 		global.PrintFatal("ARI", err.Error())
@@ -187,8 +187,16 @@ func buildFile(network Network, networkFile string, terms []string) {
 	str := "Subject To\n"
 	str += network.ToString()
 	str += "Bounds\n"
-	for _, term := range terms {
-		str += term + " free\n"
+	for key := range terms {
+		str += key + " free\n"
+	}
+	str += "General\n"
+	for key, term := range terms {
+		if meta, ok := term.(basictypes.Meta); ok {
+			if meta.GetTypeHint().ToString() == "$int" {
+				str += key + "\n"
+			}
+		}
 	}
 	str += "End"
 
