@@ -108,6 +108,38 @@ func convertTermAndRegisterVariables(old basictypes.Term) (result Evaluable[Nume
 		}
 
 		return nil, terms
+	case "$floor":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form, newTerms := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			terms = append(terms, newTerms...)
+			return NewFloor(form), terms
+		}
+
+		return nil, terms
+	case "$ceiling":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form, newTerms := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			terms = append(terms, newTerms...)
+			return NewCeil(form), terms
+		}
+
+		return nil, terms
+	case "$truncate":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form, newTerms := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			terms = append(terms, newTerms...)
+			return NewTrunc(form), terms
+		}
+
+		return nil, terms
+	case "$round":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form, newTerms := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			terms = append(terms, newTerms...)
+			return NewRound(form), terms
+		}
+
+		return nil, terms
 	default:
 		value, err := strconv.Atoi(name)
 		if err == nil {

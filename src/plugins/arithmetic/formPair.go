@@ -135,10 +135,6 @@ func getFactorMapForFunc[T, U Evaluable[Numeric]](pf *PairForm[T, U], op func(Nu
 	}
 
 	for k, v := range secondChildMap {
-		if _, found := factorMap[k]; !found {
-			factorMap[k] = 0
-		}
-
 		factorMap[k] = op(factorMap[k], v)
 	}
 

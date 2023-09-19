@@ -69,7 +69,7 @@ func (e *Eq) Copy() Form {
 }
 
 func (e *Eq) getFactorMap() map[string]Numeric {
-	return getFactorMapForFunc[Evaluable[Numeric], Evaluable[Numeric]](e.PairForm, diff)
+	return getFactorMapForFunc(e.PairForm, diff)
 }
 
 func (e *Eq) Evaluate() bool {
@@ -109,7 +109,7 @@ func (d *NotEq) Copy() Form {
 }
 
 func (d *NotEq) getFactorMap() map[string]Numeric {
-	return getFactorMapForFunc[Evaluable[Numeric], Evaluable[Numeric]](d.PairForm, diff)
+	return getFactorMapForFunc(d.PairForm, diff)
 }
 
 func (d *NotEq) Evaluate() bool {
@@ -149,7 +149,7 @@ func (l *Less) Copy() Form {
 }
 
 func (l *Less) getFactorMap() map[string]Numeric {
-	return getFactorMapForFunc[Evaluable[Numeric], Evaluable[Numeric]](l.PairForm, diff)
+	return getFactorMapForFunc(l.PairForm, diff)
 }
 
 func (l *Less) Evaluate() bool {
@@ -189,7 +189,7 @@ func (le *LessEq) Copy() Form {
 }
 
 func (le *LessEq) getFactorMap() map[string]Numeric {
-	return getFactorMapForFunc[Evaluable[Numeric], Evaluable[Numeric]](le.PairForm, diff)
+	return getFactorMapForFunc(le.PairForm, diff)
 }
 
 func (le *LessEq) Evaluate() bool {
@@ -229,7 +229,7 @@ func (g *Great) Copy() Form {
 }
 
 func (g *Great) getFactorMap() map[string]Numeric {
-	return getFactorMapForFunc[Evaluable[Numeric], Evaluable[Numeric]](g.PairForm, diff)
+	return getFactorMapForFunc(g.PairForm, diff)
 }
 
 func (g *Great) Evaluate() bool {
@@ -269,7 +269,7 @@ func (ge *GreatEq) Copy() Form {
 }
 
 func (ge *GreatEq) getFactorMap() map[string]Numeric {
-	return getFactorMapForFunc[Evaluable[Numeric], Evaluable[Numeric]](ge.PairForm, diff)
+	return getFactorMapForFunc(ge.PairForm, diff)
 }
 
 func (ge *GreatEq) Evaluate() bool {
