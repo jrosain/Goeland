@@ -8,26 +8,26 @@ import (
 	basictypes "github.com/GoelandProver/Goeland/types/basic-types"
 )
 
-var constantMap map[int]basictypes.Term = make(map[int]basictypes.Term)
+var constantMap map[Numeric]basictypes.Term = make(map[Numeric]basictypes.Term)
 var constantMapMutex sync.Mutex
 
-func addToConstantMap(value int) {
+func addToConstantMap(value Numeric) {
 	constantMapMutex.Lock()
 	defer constantMapMutex.Unlock()
 
 	if _, ok := constantMap[value]; !ok {
-		constantMap[value] = basictypes.MakerFun(basictypes.MakerId(strconv.Itoa(value)), basictypes.MakeEmptyTermList(), []typing.TypeApp{}, typing.MkTypeHint("$int"))
+		constantMap[value] = basictypes.MakerFun(basictypes.MakerId(value.ToString()), basictypes.MakeEmptyTermList(), []typing.TypeApp{}, typing.MkTypeHint("$int"))
 	}
 }
 
-func setToConstantMap(key int, value basictypes.Term) {
+func setToConstantMap(key Numeric, value basictypes.Term) {
 	constantMapMutex.Lock()
 	defer constantMapMutex.Unlock()
 
 	constantMap[key] = value
 }
 
-func getValueTerm(value int) basictypes.Term {
+func getValueTerm(value Numeric) basictypes.Term {
 	constantMapMutex.Lock()
 	defer constantMapMutex.Unlock()
 
@@ -37,7 +37,7 @@ func getValueTerm(value int) basictypes.Term {
 
 func convertPred(old basictypes.Pred) (result ComparisonForm, termMap map[string]basictypes.Term) {
 	termMap = make(map[string]basictypes.Term)
-	args := []Evaluable[int]{}
+	args := []Evaluable[Numeric]{}
 
 	for _, term := range old.GetArgs() {
 		form, terms := convertTermAndRegisterVariables(term)
@@ -66,7 +66,7 @@ func convertPred(old basictypes.Pred) (result ComparisonForm, termMap map[string
 	}
 }
 
-func convertTermAndRegisterVariables(old basictypes.Term) (result Evaluable[int], terms basictypes.TermList) {
+func convertTermAndRegisterVariables(old basictypes.Term) (result Evaluable[Numeric], terms basictypes.TermList) {
 	terms = basictypes.TermList{}
 	name := old.GetName()
 	switch name {
@@ -111,8 +111,8 @@ func convertTermAndRegisterVariables(old basictypes.Term) (result Evaluable[int]
 	default:
 		value, err := strconv.Atoi(name)
 		if err == nil {
-			setToConstantMap(value, old)
-			return NewConstant(value), terms
+			setToConstantMap(Numeric(value), old)
+			return NewConstant(Numeric(value)), terms
 		} else {
 			terms = append(terms, old)
 			return NewFactor(One, NewVariable(old.ToMappedString(basictypes.DefaultMap, false))), terms

@@ -2,14 +2,14 @@ package arithmetic
 
 type ComparisonForm interface {
 	Evaluable[bool]
-	EvaluablePair[int]
+	EvaluablePair[Numeric]
 	Normalize() ComparisonForm
 	Reverse() ComparisonForm
 	Equalize() ComparisonForm
 	Simplify() ComparisonForm
 }
 
-func NewComparaisonForm(first, second Evaluable[int], symbol PairOperator) ComparisonForm {
+func NewComparaisonForm(first, second Evaluable[Numeric], symbol PairOperator) ComparisonForm {
 	switch symbol {
 	case EqOperator:
 		return NewEq(first, second)
@@ -34,7 +34,7 @@ func buildComparisonComponentsFrom(compForm ComparisonForm) ComparisonForm {
 
 	firstDone := false
 	var constant *Constant
-	var form Evaluable[int]
+	var form Evaluable[Numeric]
 
 	for k, v := range factorMap {
 		factor := NewConstant(v)
@@ -53,10 +53,10 @@ func buildComparisonComponentsFrom(compForm ComparisonForm) ComparisonForm {
 }
 
 type Eq struct {
-	*PairForm[Evaluable[int], Evaluable[int]]
+	*PairForm[Evaluable[Numeric], Evaluable[Numeric]]
 }
 
-func NewEq(first, second Evaluable[int]) *Eq {
+func NewEq(first, second Evaluable[Numeric]) *Eq {
 	return &Eq{NewPairForm(first, second, EqOperator)}
 }
 
@@ -68,8 +68,8 @@ func (e *Eq) Copy() Form {
 	return e.TrueCopy()
 }
 
-func (e *Eq) getFactorMap() map[string]int {
-	return getFactorMapForFunc[Evaluable[int], Evaluable[int]](e.PairForm, diff)
+func (e *Eq) getFactorMap() map[string]Numeric {
+	return getFactorMapForFunc[Evaluable[Numeric], Evaluable[Numeric]](e.PairForm, diff)
 }
 
 func (e *Eq) Evaluate() bool {
@@ -93,10 +93,10 @@ func (e *Eq) Simplify() ComparisonForm {
 }
 
 type NotEq struct {
-	*PairForm[Evaluable[int], Evaluable[int]]
+	*PairForm[Evaluable[Numeric], Evaluable[Numeric]]
 }
 
-func NewNotEq(first, second Evaluable[int]) *NotEq {
+func NewNotEq(first, second Evaluable[Numeric]) *NotEq {
 	return &NotEq{NewPairForm(first, second, EqOperator)}
 }
 
@@ -108,8 +108,8 @@ func (d *NotEq) Copy() Form {
 	return d.TrueCopy()
 }
 
-func (d *NotEq) getFactorMap() map[string]int {
-	return getFactorMapForFunc[Evaluable[int], Evaluable[int]](d.PairForm, diff)
+func (d *NotEq) getFactorMap() map[string]Numeric {
+	return getFactorMapForFunc[Evaluable[Numeric], Evaluable[Numeric]](d.PairForm, diff)
 }
 
 func (d *NotEq) Evaluate() bool {
@@ -117,7 +117,7 @@ func (d *NotEq) Evaluate() bool {
 }
 
 func (d *NotEq) Normalize() ComparisonForm {
-	return NewEq(NewSum(d.first, NewNeg(d.second)), Zero)
+	return NewNotEq(NewSum(d.first, NewNeg(d.second)), Zero)
 }
 
 func (d *NotEq) Reverse() ComparisonForm {
@@ -133,10 +133,10 @@ func (d *NotEq) Simplify() ComparisonForm {
 }
 
 type Less struct {
-	*PairForm[Evaluable[int], Evaluable[int]]
+	*PairForm[Evaluable[Numeric], Evaluable[Numeric]]
 }
 
-func NewLess(first, second Evaluable[int]) *Less {
+func NewLess(first, second Evaluable[Numeric]) *Less {
 	return &Less{NewPairForm(first, second, LessOperator)}
 }
 
@@ -148,8 +148,8 @@ func (l *Less) Copy() Form {
 	return l.TrueCopy()
 }
 
-func (l *Less) getFactorMap() map[string]int {
-	return getFactorMapForFunc[Evaluable[int], Evaluable[int]](l.PairForm, diff)
+func (l *Less) getFactorMap() map[string]Numeric {
+	return getFactorMapForFunc[Evaluable[Numeric], Evaluable[Numeric]](l.PairForm, diff)
 }
 
 func (l *Less) Evaluate() bool {
@@ -173,10 +173,10 @@ func (l *Less) Simplify() ComparisonForm {
 }
 
 type LessEq struct {
-	*PairForm[Evaluable[int], Evaluable[int]]
+	*PairForm[Evaluable[Numeric], Evaluable[Numeric]]
 }
 
-func NewLessEq(first, second Evaluable[int]) *LessEq {
+func NewLessEq(first, second Evaluable[Numeric]) *LessEq {
 	return &LessEq{NewPairForm(first, second, LessEqOperator)}
 }
 
@@ -188,8 +188,8 @@ func (le *LessEq) Copy() Form {
 	return le.TrueCopy()
 }
 
-func (le *LessEq) getFactorMap() map[string]int {
-	return getFactorMapForFunc[Evaluable[int], Evaluable[int]](le.PairForm, diff)
+func (le *LessEq) getFactorMap() map[string]Numeric {
+	return getFactorMapForFunc[Evaluable[Numeric], Evaluable[Numeric]](le.PairForm, diff)
 }
 
 func (le *LessEq) Evaluate() bool {
@@ -213,10 +213,10 @@ func (le *LessEq) Simplify() ComparisonForm {
 }
 
 type Great struct {
-	*PairForm[Evaluable[int], Evaluable[int]]
+	*PairForm[Evaluable[Numeric], Evaluable[Numeric]]
 }
 
-func NewGreat(first, second Evaluable[int]) *Great {
+func NewGreat(first, second Evaluable[Numeric]) *Great {
 	return &Great{NewPairForm(first, second, GreatOperator)}
 }
 
@@ -228,8 +228,8 @@ func (g *Great) Copy() Form {
 	return g.TrueCopy()
 }
 
-func (g *Great) getFactorMap() map[string]int {
-	return getFactorMapForFunc[Evaluable[int], Evaluable[int]](g.PairForm, diff)
+func (g *Great) getFactorMap() map[string]Numeric {
+	return getFactorMapForFunc[Evaluable[Numeric], Evaluable[Numeric]](g.PairForm, diff)
 }
 
 func (g *Great) Evaluate() bool {
@@ -253,10 +253,10 @@ func (g *Great) Simplify() ComparisonForm {
 }
 
 type GreatEq struct {
-	*PairForm[Evaluable[int], Evaluable[int]]
+	*PairForm[Evaluable[Numeric], Evaluable[Numeric]]
 }
 
-func NewGreatEq(first, second Evaluable[int]) *GreatEq {
+func NewGreatEq(first, second Evaluable[Numeric]) *GreatEq {
 	return &GreatEq{NewPairForm(first, second, GreatEqOperator)}
 }
 
@@ -268,8 +268,8 @@ func (ge *GreatEq) Copy() Form {
 	return ge.TrueCopy()
 }
 
-func (ge *GreatEq) getFactorMap() map[string]int {
-	return getFactorMapForFunc[Evaluable[int], Evaluable[int]](ge.PairForm, diff)
+func (ge *GreatEq) getFactorMap() map[string]Numeric {
+	return getFactorMapForFunc[Evaluable[Numeric], Evaluable[Numeric]](ge.PairForm, diff)
 }
 
 func (ge *GreatEq) Evaluate() bool {

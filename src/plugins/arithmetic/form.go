@@ -1,65 +1,12 @@
 package arithmetic
 
 import (
-	"strconv"
-
 	"github.com/GoelandProver/Goeland/global"
 )
 
 type Form interface {
 	global.Basic[Form]
-	getFactorMap() map[string]int
-}
-
-type Evaluable[T any] interface {
-	Form
-	Evaluate() T
-}
-
-type Integer int
-
-func (i Integer) ToString() string {
-	return strconv.Itoa(int(i))
-}
-
-func (i Integer) Equals(other any) bool {
-	if typed, ok := other.(Integer); ok {
-		return i == typed
-	}
-	return false
-}
-
-func (i Integer) Copy() Form {
-	return i
-}
-
-func (i Integer) getFactorMap() map[string]int {
-	return make(map[string]int)
-}
-
-func (i Integer) Evaluate() int {
-	return int(i)
-}
-
-type String string
-
-func (s String) ToString() string {
-	return string(s)
-}
-
-func (s String) Equals(other any) bool {
-	if typed, ok := other.(String); ok {
-		return s == typed
-	}
-	return false
-}
-
-func (s String) Copy() Form {
-	return s
-}
-
-func (s String) getFactorMap() map[string]int {
-	return make(map[string]int)
+	getFactorMap() map[string]Numeric
 }
 
 type SimpleForm[T Form] struct {
@@ -100,34 +47,34 @@ func (sf *SimpleForm[T]) TrueCopy() *SimpleForm[T] {
 	return nil
 }
 
-func (sf *SimpleForm[T]) getFactorMap() map[string]int {
+func (sf *SimpleForm[T]) getFactorMap() map[string]Numeric {
 	return sf.value.getFactorMap()
 }
 
 type Constant struct {
-	*SimpleForm[Integer]
+	*SimpleForm[Numeric]
 }
 
 var Zero *Constant = NewConstant(0)
 var One *Constant = NewConstant(1)
 
-func NewConstant(value int) *Constant {
-	return &Constant{NewSimpleForm(Integer(value))}
+func NewConstant(value Numeric) *Constant {
+	return &Constant{NewSimpleForm(value)}
 }
 
 func (c *Constant) Copy() Form {
 	return &Constant{c.SimpleForm.TrueCopy()}
 }
 
-func (c *Constant) getFactorMap() map[string]int {
-	factorMap := make(map[string]int)
+func (c *Constant) getFactorMap() map[string]Numeric {
+	factorMap := make(map[string]Numeric)
 
-	factorMap[Unit.ToString()] = int(c.value)
+	factorMap[Unit.ToString()] = Numeric(c.value)
 
 	return factorMap
 }
 
-func (c *Constant) Evaluate() int {
+func (c *Constant) Evaluate() Numeric {
 	return c.value.Evaluate()
 }
 
@@ -147,33 +94,29 @@ func (v *Variable) Copy() Form {
 	return &Variable{v.SimpleForm.TrueCopy()}
 }
 
-func (v *Variable) getFactorMap() map[string]int {
-	factorMap := make(map[string]int)
+func (v *Variable) getFactorMap() map[string]Numeric {
+	factorMap := make(map[string]Numeric)
 
 	factorMap[v.value.ToString()] = 1
 
 	return factorMap
 }
 
-func (v *Variable) Evaluate() int {
+func (v *Variable) Evaluate() Numeric {
 	global.PrintPanic("ARI", "Trying to evaluate a Variable, this should never happen")
 	return 0
 }
 
 type Neg struct {
-	*SimpleForm[Evaluable[int]]
+	*SimpleForm[Evaluable[Numeric]]
 }
 
-func NewNeg(value Evaluable[int]) Evaluable[int] {
+func NewNeg(value Evaluable[Numeric]) Evaluable[Numeric] {
 	switch typed := value.(type) {
 	case *Neg:
 		return typed.value
 	case *Constant:
-		if typed.value < 0 {
-			return NewConstant(-int(typed.value))
-		} else {
-			return &Neg{NewSimpleForm(value)}
-		}
+		return NewConstant(-typed.value)
 	default:
 		return &Neg{NewSimpleForm(value)}
 	}
@@ -187,8 +130,8 @@ func (n *Neg) ToString() string {
 	return "-" + n.SimpleForm.ToString()
 }
 
-func (n *Neg) getFactorMap() map[string]int {
-	factorMap := make(map[string]int)
+func (n *Neg) getFactorMap() map[string]Numeric {
+	factorMap := make(map[string]Numeric)
 	childMap := n.value.getFactorMap()
 
 	for k, v := range childMap {
@@ -198,6 +141,6 @@ func (n *Neg) getFactorMap() map[string]int {
 	return factorMap
 }
 
-func (n *Neg) Evaluate() int {
+func (n *Neg) Evaluate() Numeric {
 	return -n.value.Evaluate()
 }

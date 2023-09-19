@@ -17,7 +17,7 @@ const HiGHS_PATH = "./plugins/arithmetic/HiGHS/build/bin/highs"
 
 type CounterExample struct {
 	Variables []basictypes.Term
-	Values    []int
+	Values    []Numeric
 }
 
 func (ce *CounterExample) ToString() string {
@@ -113,23 +113,23 @@ func buildConstraintNetwork(formNetworks []basictypes.FormAndTermsList) ([]Netwo
 	for _, formNetwork := range formNetworks {
 		network := Network{}
 		for _, form := range formNetwork {
+			var compForm ComparisonForm
+			var newMap map[string]basictypes.Term
+
 			switch typed := form.GetForm().(type) {
 			case basictypes.Pred:
-				form, newMap := convertPred(typed)
-				network = append(network, form.Simplify())
-				for k, v := range newMap {
-					termMap[k] = v
-				}
+				compForm, newMap = convertPred(typed)
 			case basictypes.Not:
 				if pred, ok := typed.GetForm().(basictypes.Pred); ok {
-					form, newMap := convertPred(pred)
-					network = append(network, form.Reverse().Simplify())
-					for k, v := range newMap {
-						termMap[k] = v
-					}
+					compForm, newMap = convertPred(pred)
+					compForm = compForm.Reverse()
 				}
 			}
 
+			network = append(network, compForm.Simplify())
+			for k, v := range newMap {
+				termMap[k] = v
+			}
 		}
 		networks = append(networks, network)
 	}
@@ -267,12 +267,12 @@ func returnVarAmount(line string) int {
 	return varAmount
 }
 
-func returnVariableValue(line string, termMap map[string]basictypes.Term) (variable basictypes.Term, value int) {
+func returnVariableValue(line string, termMap map[string]basictypes.Term) (variable basictypes.Term, value Numeric) {
 	words := strings.Split(line, " ")
 	variable = termMap[words[0]]
-	value, err := strconv.Atoi(words[1])
+	val, err := strconv.ParseFloat(words[1], 64)
 	if err != nil {
 		global.PrintFatal("ARI", err.Error())
 	}
-	return variable, value
+	return variable, Numeric(val)
 }

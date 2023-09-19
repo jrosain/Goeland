@@ -11,3 +11,4 @@ __pycache__
 *.out
 *.lp
 src/go.sum
+HiGHS.log
