@@ -33,7 +33,7 @@ func buildComparisonComponentsFrom(compForm ComparisonForm) ComparisonForm {
 	factorMap := equalized.getFactorMap()
 
 	firstDone := false
-	var constant *Constant
+	var constant AnyConstant
 	var form Evaluable[Numeric]
 
 	for k, v := range factorMap {
@@ -165,7 +165,7 @@ func (l *Less) Reverse() ComparisonForm {
 }
 
 func (l *Less) Equalize() ComparisonForm {
-	return NewLessEq(NewSum(l.first, NewConstant(1)), l.second)
+	return NewLessEq(NewSum(l.first, One), l.second)
 }
 
 func (l *Less) Simplify() ComparisonForm {
@@ -245,7 +245,7 @@ func (g *Great) Reverse() ComparisonForm {
 }
 
 func (g *Great) Equalize() ComparisonForm {
-	return NewGreatEq(NewDiff(g.first, NewConstant(1)), g.second)
+	return NewGreatEq(NewDiff(g.first, One), g.second)
 }
 
 func (g *Great) Simplify() ComparisonForm {

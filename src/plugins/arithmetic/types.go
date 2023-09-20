@@ -102,6 +102,10 @@ func (r Rational) Simplify() Rational {
 	return Rational{r.top / gcd, r.bot / gcd}
 }
 
+func (r Rational) Negate() Rational {
+	return Rational{-r.top, r.bot}
+}
+
 func (r Rational) ToString() string {
 	return fmt.Sprintf("%v/%v", r.top, r.bot)
 }

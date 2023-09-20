@@ -1,7 +1,6 @@
 package arithmetic
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/GoelandProver/Goeland/global"
@@ -54,31 +53,40 @@ func (sf *SimpleForm[T]) getFactorMap() map[string]Numeric {
 	return sf.value.getFactorMap()
 }
 
-type Constant struct {
-	*SimpleForm[Numeric]
+type AnyConstant interface {
+	Evaluable[Numeric]
+	IsConstant() bool
 }
 
-var Zero *Constant = NewConstant(0)
-var One *Constant = NewConstant(1)
-
-func NewConstant(value Numeric) *Constant {
-	return &Constant{NewSimpleForm(value)}
+type Constant[T Evaluable[Numeric]] struct {
+	*SimpleForm[T]
 }
 
-func (c *Constant) Copy() Form {
-	return &Constant{c.SimpleForm.TrueCopy()}
+var Zero *Constant[Integer] = NewConstant[Integer](0)
+var One *Constant[Integer] = NewConstant[Integer](1)
+
+func NewConstant[T Evaluable[Numeric]](value T) *Constant[T] {
+	return &Constant[T]{NewSimpleForm(value)}
 }
 
-func (c *Constant) getFactorMap() map[string]Numeric {
+func (c *Constant[T]) Copy() Form {
+	return &Constant[T]{c.SimpleForm.TrueCopy()}
+}
+
+func (c *Constant[T]) getFactorMap() map[string]Numeric {
 	factorMap := make(map[string]Numeric)
 
-	factorMap[Unit.ToString()] = Numeric(c.value)
+	factorMap[Unit.ToString()] = c.Evaluate()
 
 	return factorMap
 }
 
-func (c *Constant) Evaluate() Numeric {
+func (c *Constant[T]) Evaluate() Numeric {
 	return c.value.Evaluate()
+}
+
+func (c *Constant[T]) IsConstant() bool {
+	return true
 }
 
 const varPrefix string = ""
@@ -118,7 +126,11 @@ func NewNeg(value Evaluable[Numeric]) Evaluable[Numeric] {
 	switch typed := value.(type) {
 	case *Neg:
 		return typed.value
-	case *Constant:
+	case *Constant[Integer]:
+		return NewConstant(-typed.value)
+	case *Constant[Rational]:
+		return NewConstant(typed.value.Negate())
+	case *Constant[Real]:
 		return NewConstant(-typed.value)
 	default:
 		return &Neg{NewSimpleForm(value)}
@@ -168,7 +180,6 @@ func (f *Floor) getFactorMap() map[string]Numeric {
 	factorMap := make(map[string]Numeric)
 
 	factorMap[Unit.ToString()] = f.Evaluate()
-	fmt.Printf("--%v\n", factorMap)
 
 	return factorMap
 }
