@@ -1,8 +1,6 @@
 package arithmetic
 
 import (
-	"math"
-
 	"github.com/GoelandProver/Goeland/global"
 )
 
@@ -57,8 +55,8 @@ func (pf *PairForm[T, U]) Copy() Form {
 	return pf.TrueCopy()
 }
 
-func (pf *PairForm[T, U]) getFactorMap() map[string]Numeric {
-	factorMap := make(map[string]Numeric)
+func (pf *PairForm[T, U]) getFactorMap() map[string]float64 {
+	factorMap := make(map[string]float64)
 	firstChildMap := pf.GetFirst().getFactorMap()
 	secondChildMap := pf.GetSecond().getFactorMap()
 
@@ -132,24 +130,24 @@ func (s *Sum) Copy() Form {
 	return &Sum{s.PairForm.TrueCopy()}
 }
 
-var sum = func(first, second Numeric) Numeric {
+var sum = func(first, second float64) float64 {
 	return first + second
 }
 
-var diff = func(first, second Numeric) Numeric {
+var diff = func(first, second float64) float64 {
 	return first - second
 }
 
-func (s *Sum) getFactorMap() map[string]Numeric {
+func (s *Sum) getFactorMap() map[string]float64 {
 	return getFactorMapForFunc[Evaluable[Numeric], Evaluable[Numeric]](s.PairForm, sum)
 }
 
 func (s *Sum) Evaluate() Numeric {
-	return s.first.Evaluate() + s.second.Evaluate()
+	return s.first.Evaluate().Sum(s.second.Evaluate())
 }
 
-func getFactorMapForFunc[T, U Evaluable[Numeric]](pf *PairForm[T, U], op func(Numeric, Numeric) Numeric) map[string]Numeric {
-	factorMap := make(map[string]Numeric)
+func getFactorMapForFunc[T, U Evaluable[Numeric]](pf *PairForm[T, U], op func(float64, float64) float64) map[string]float64 {
+	factorMap := make(map[string]float64)
 	firstChildMap := pf.GetFirst().getFactorMap()
 	secondChildMap := pf.GetSecond().getFactorMap()
 
@@ -187,19 +185,19 @@ func (f *Factor) Copy() Form {
 	return &Factor{f.PairForm.TrueCopy()}
 }
 
-func (f *Factor) getFactorMap() map[string]Numeric {
-	factorMap := make(map[string]Numeric)
+func (f *Factor) getFactorMap() map[string]float64 {
+	factorMap := make(map[string]float64)
 	childMap := f.GetSecond().getFactorMap()
 
 	for k, v := range childMap {
-		factorMap[k] = v * f.first.Evaluate()
+		factorMap[k] = v * f.first.Evaluate().Evaluate()
 	}
 
 	return factorMap
 }
 
 func (f *Factor) Evaluate() Numeric {
-	return f.first.Evaluate() * f.second.Evaluate()
+	return f.first.Evaluate().Mult(f.second.Evaluate())
 }
 
 type Quotient struct {
@@ -207,37 +205,37 @@ type Quotient struct {
 	divisionAlgorithm func(Numeric, Numeric) Numeric
 }
 
-func NewQuotient(numerator, denominator Numeric) *Quotient {
-	return &Quotient{NewPairForm(Evaluable[Numeric](numerator), Evaluable[Numeric](denominator), "/"), quotient}
+func NewQuotient(numerator, denominator Evaluable[Numeric]) *Quotient {
+	return &Quotient{NewPairForm(numerator, denominator, "/"), quotient}
 }
 
-func NewQuotientE(numerator, denominator Numeric) *Quotient {
-	return &Quotient{NewPairForm(Evaluable[Numeric](numerator), Evaluable[Numeric](denominator), "/"), quotientEuclidean}
+func NewQuotientE(numerator, denominator Evaluable[Numeric]) *Quotient {
+	return &Quotient{NewPairForm(numerator, denominator, "/"), quotientEuclidean}
 }
 
-func NewQuotientT(numerator, denominator Numeric) *Quotient {
-	return &Quotient{NewPairForm(Evaluable[Numeric](numerator), Evaluable[Numeric](denominator), "/"), quotientTruncation}
+func NewQuotientT(numerator, denominator Evaluable[Numeric]) *Quotient {
+	return &Quotient{NewPairForm(numerator, denominator, "/"), quotientTruncation}
 }
 
-func NewQuotientF(numerator, denominator Numeric) *Quotient {
-	return &Quotient{NewPairForm(Evaluable[Numeric](numerator), Evaluable[Numeric](denominator), "/"), quotientFloor}
+func NewQuotientF(numerator, denominator Evaluable[Numeric]) *Quotient {
+	return &Quotient{NewPairForm(numerator, denominator, "/"), quotientFloor}
 }
 
 func (f *Quotient) Copy() Form {
 	return &Quotient{f.PairForm.TrueCopy(), f.divisionAlgorithm}
 }
 
-func (f *Quotient) getFactorMap() map[string]Numeric {
-	factorMap := make(map[string]Numeric)
+func (f *Quotient) getFactorMap() map[string]float64 {
+	factorMap := make(map[string]float64)
 
 	if _, ok := f.second.(AnyConstant); ok {
 		firstMap := f.first.getFactorMap()
 		for k, v := range firstMap {
-			factorMap[k] = v / f.second.Evaluate()
+			factorMap[k] = v / f.second.Evaluate().Evaluate()
 		}
 	} else {
 		if f.areTwoPartsEqual() {
-			factorMap[Unit.ToString()] = One.Evaluate()
+			factorMap[Unit.ToString()] = One.Evaluate().Evaluate()
 		} else {
 			global.PrintPanic("ARI", "Trying to get the factor map of a non-linear formula in a quotient function.")
 		}
@@ -247,31 +245,27 @@ func (f *Quotient) getFactorMap() map[string]Numeric {
 }
 
 func quotient(f, s Numeric) Numeric {
-	return f / s
+	return f.Div(s)
 }
 
 func quotientEuclidean(f, s Numeric) Numeric {
-	res := f / s
+	res := f.Div(s)
 
-	if s > 0 {
-		res = Numeric(math.Floor(float64(res)))
+	if s.Gr(Zero.Evaluate()) {
+		res = res.Floor()
 	} else {
-		res = Numeric(math.Ceil(float64(res)))
+		res = res.Ceil()
 	}
 
 	return res
 }
 
 func quotientTruncation(f, s Numeric) Numeric {
-	res := f / s
-	res = Numeric(math.Trunc(float64(res)))
-	return res
+	return f.Div(s).Trunc()
 }
 
 func quotientFloor(f, s Numeric) Numeric {
-	res := f / s
-	res = Numeric(math.Floor(float64(res)))
-	return res
+	return f.Div(s).Floor()
 }
 
 func (f *Quotient) Evaluate() Numeric {
@@ -283,34 +277,34 @@ type Remainder struct {
 	divisionAlgorithm func(Numeric, Numeric) Numeric
 }
 
-func NewRemainderE(numerator, denominator Numeric) *Remainder {
-	return &Remainder{NewPairForm(Evaluable[Numeric](numerator), Evaluable[Numeric](denominator), "%"), quotientEuclidean}
+func NewRemainderE(numerator, denominator Evaluable[Numeric]) *Remainder {
+	return &Remainder{NewPairForm(numerator, denominator, "%"), quotientEuclidean}
 }
 
-func NewRemainderT(numerator, denominator Numeric) *Remainder {
-	return &Remainder{NewPairForm(Evaluable[Numeric](numerator), Evaluable[Numeric](denominator), "%"), quotientTruncation}
+func NewRemainderT(numerator, denominator Evaluable[Numeric]) *Remainder {
+	return &Remainder{NewPairForm(numerator, denominator, "%"), quotientTruncation}
 }
 
-func NewRemainderF(numerator, denominator Numeric) *Remainder {
-	return &Remainder{NewPairForm(Evaluable[Numeric](numerator), Evaluable[Numeric](denominator), "%"), quotientFloor}
+func NewRemainderF(numerator, denominator Evaluable[Numeric]) *Remainder {
+	return &Remainder{NewPairForm(numerator, denominator, "%"), quotientFloor}
 }
 
 func (f *Remainder) Copy() Form {
 	return &Remainder{f.PairForm.TrueCopy(), f.divisionAlgorithm}
 }
 
-func (f *Remainder) getFactorMap() map[string]Numeric {
-	factorMap := make(map[string]Numeric)
+func (f *Remainder) getFactorMap() map[string]float64 {
+	factorMap := make(map[string]float64)
 
 	if _, ok := f.first.(AnyConstant); ok {
 		if _, ok := f.second.(AnyConstant); ok {
-			factorMap[Unit.ToString()] = f.Evaluate()
+			factorMap[Unit.ToString()] = f.Evaluate().Evaluate()
 		} else {
 			global.PrintPanic("ARI", "Trying to get the factor map of a non-linear formula in a remainder function.")
 		}
 	} else {
 		if f.areTwoPartsEqual() {
-			factorMap[Unit.ToString()] = Zero.Evaluate()
+			factorMap[Unit.ToString()] = Zero.Evaluate().Evaluate()
 		} else {
 			global.PrintPanic("ARI", "Trying to get the factor map of a non-linear formula in a remainder function.")
 		}
@@ -323,5 +317,5 @@ func (f *Remainder) Evaluate() Numeric {
 	numerator := f.first.Evaluate()
 	denominator := f.second.Evaluate()
 	divResult := f.divisionAlgorithm(numerator, denominator)
-	return Numeric(math.Mod(float64(numerator), float64(divResult)))
+	return numerator.Mod(divResult)
 }

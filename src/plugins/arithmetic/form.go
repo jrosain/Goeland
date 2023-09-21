@@ -1,14 +1,12 @@
 package arithmetic
 
 import (
-	"math"
-
 	"github.com/GoelandProver/Goeland/global"
 )
 
 type Form interface {
 	global.Basic[Form]
-	getFactorMap() map[string]Numeric
+	getFactorMap() map[string]float64
 }
 
 type SimpleForm[T Form] struct {
@@ -49,7 +47,7 @@ func (sf *SimpleForm[T]) TrueCopy() *SimpleForm[T] {
 	return nil
 }
 
-func (sf *SimpleForm[T]) getFactorMap() map[string]Numeric {
+func (sf *SimpleForm[T]) getFactorMap() map[string]float64 {
 	return sf.value.getFactorMap()
 }
 
@@ -58,14 +56,14 @@ type AnyConstant interface {
 	IsConstant() bool
 }
 
-type Constant[T Evaluable[Numeric]] struct {
+type Constant[T Numeric] struct {
 	*SimpleForm[T]
 }
 
 var Zero *Constant[Integer] = NewConstant[Integer](0)
 var One *Constant[Integer] = NewConstant[Integer](1)
 
-func NewConstant[T Evaluable[Numeric]](value T) *Constant[T] {
+func NewConstant[T Numeric](value T) *Constant[T] {
 	return &Constant[T]{NewSimpleForm(value)}
 }
 
@@ -73,16 +71,16 @@ func (c *Constant[T]) Copy() Form {
 	return &Constant[T]{c.SimpleForm.TrueCopy()}
 }
 
-func (c *Constant[T]) getFactorMap() map[string]Numeric {
-	factorMap := make(map[string]Numeric)
+func (c *Constant[T]) getFactorMap() map[string]float64 {
+	factorMap := make(map[string]float64)
 
-	factorMap[Unit.ToString()] = c.Evaluate()
+	factorMap[Unit.ToString()] = c.Evaluate().Evaluate()
 
 	return factorMap
 }
 
 func (c *Constant[T]) Evaluate() Numeric {
-	return c.value.Evaluate()
+	return c.value
 }
 
 func (c *Constant[T]) IsConstant() bool {
@@ -105,8 +103,8 @@ func (v *Variable) Copy() Form {
 	return &Variable{v.SimpleForm.TrueCopy()}
 }
 
-func (v *Variable) getFactorMap() map[string]Numeric {
-	factorMap := make(map[string]Numeric)
+func (v *Variable) getFactorMap() map[string]float64 {
+	factorMap := make(map[string]float64)
 
 	factorMap[v.value.ToString()] = 1
 
@@ -115,7 +113,7 @@ func (v *Variable) getFactorMap() map[string]Numeric {
 
 func (v *Variable) Evaluate() Numeric {
 	global.PrintPanic("ARI", "Trying to evaluate a Variable, this should never happen")
-	return 0
+	return Zero.value
 }
 
 type Neg struct {
@@ -145,8 +143,8 @@ func (n *Neg) ToString() string {
 	return "-" + n.SimpleForm.ToString()
 }
 
-func (n *Neg) getFactorMap() map[string]Numeric {
-	factorMap := make(map[string]Numeric)
+func (n *Neg) getFactorMap() map[string]float64 {
+	factorMap := make(map[string]float64)
 	childMap := n.value.getFactorMap()
 
 	for k, v := range childMap {
@@ -157,7 +155,7 @@ func (n *Neg) getFactorMap() map[string]Numeric {
 }
 
 func (n *Neg) Evaluate() Numeric {
-	return -n.value.Evaluate()
+	return n.value.Evaluate().Neg()
 }
 
 type Floor struct {
@@ -176,16 +174,16 @@ func (f *Floor) ToString() string {
 	return "⌊" + f.SimpleForm.ToString() + "⌋"
 }
 
-func (f *Floor) getFactorMap() map[string]Numeric {
-	factorMap := make(map[string]Numeric)
+func (f *Floor) getFactorMap() map[string]float64 {
+	factorMap := make(map[string]float64)
 
-	factorMap[Unit.ToString()] = f.Evaluate()
+	factorMap[Unit.ToString()] = f.Evaluate().Evaluate()
 
 	return factorMap
 }
 
 func (f *Floor) Evaluate() Numeric {
-	return Numeric(math.Floor(float64(f.SimpleForm.value.Evaluate())))
+	return f.SimpleForm.value.Evaluate().Floor()
 }
 
 type Ceil struct {
@@ -204,16 +202,16 @@ func (c *Ceil) ToString() string {
 	return "⌈" + c.SimpleForm.ToString() + "⌉"
 }
 
-func (c *Ceil) getFactorMap() map[string]Numeric {
-	factorMap := make(map[string]Numeric)
+func (c *Ceil) getFactorMap() map[string]float64 {
+	factorMap := make(map[string]float64)
 
-	factorMap[Unit.ToString()] = c.Evaluate()
+	factorMap[Unit.ToString()] = c.Evaluate().Evaluate()
 
 	return factorMap
 }
 
 func (c *Ceil) Evaluate() Numeric {
-	return Numeric(math.Ceil(float64(c.SimpleForm.value.Evaluate())))
+	return c.value.Evaluate().Ceil()
 }
 
 type Trunc struct {
@@ -232,16 +230,16 @@ func (t *Trunc) ToString() string {
 	return "trunc(" + t.SimpleForm.ToString() + ")"
 }
 
-func (t *Trunc) getFactorMap() map[string]Numeric {
-	factorMap := make(map[string]Numeric)
+func (t *Trunc) getFactorMap() map[string]float64 {
+	factorMap := make(map[string]float64)
 
-	factorMap[Unit.ToString()] = t.Evaluate()
+	factorMap[Unit.ToString()] = t.Evaluate().Evaluate()
 
 	return factorMap
 }
 
 func (t *Trunc) Evaluate() Numeric {
-	return Numeric(math.Trunc(float64(t.SimpleForm.value.Evaluate())))
+	return t.value.Evaluate().Trunc()
 }
 
 type Round struct {
@@ -260,14 +258,14 @@ func (r *Round) ToString() string {
 	return "round(" + r.SimpleForm.ToString() + ")"
 }
 
-func (r *Round) getFactorMap() map[string]Numeric {
-	factorMap := make(map[string]Numeric)
+func (r *Round) getFactorMap() map[string]float64 {
+	factorMap := make(map[string]float64)
 
-	factorMap[Unit.ToString()] = r.Evaluate()
+	factorMap[Unit.ToString()] = r.Evaluate().Evaluate()
 
 	return factorMap
 }
 
 func (r *Round) Evaluate() Numeric {
-	return Numeric(math.RoundToEven(float64(r.SimpleForm.value.Evaluate())))
+	return r.value.Evaluate().Round()
 }

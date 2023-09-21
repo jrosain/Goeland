@@ -143,8 +143,8 @@ func convertTermAndRegisterVariables(old basictypes.Term) (result Evaluable[Nume
 	default:
 		value, err := strconv.Atoi(name)
 		if err == nil {
-			setToConstantMap(Numeric(value), old)
-			return NewConstant(Numeric(value)), terms
+			setToConstantMap(Integer(value), old)
+			return NewConstant(Integer(value)), terms
 		} else {
 			terms = append(terms, old)
 			return NewFactor(One, NewVariable(old.ToMappedString(basictypes.DefaultMap, false))), terms

@@ -282,5 +282,5 @@ func returnVariableValue(line string, termMap map[string]basictypes.Term) (varia
 	if err != nil {
 		global.PrintFatal("ARI", err.Error())
 	}
-	return variable, Numeric(val)
+	return variable, Real(val)
 }

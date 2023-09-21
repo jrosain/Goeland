@@ -37,7 +37,7 @@ func buildComparisonComponentsFrom(compForm ComparisonForm) ComparisonForm {
 	var form Evaluable[Numeric]
 
 	for k, v := range factorMap {
-		factor := NewConstant(v)
+		factor := NewConstant(Real(v))
 
 		if k == Unit.ToString() {
 			constant = factor
@@ -68,12 +68,12 @@ func (e *Eq) Copy() Form {
 	return e.TrueCopy()
 }
 
-func (e *Eq) getFactorMap() map[string]Numeric {
+func (e *Eq) getFactorMap() map[string]float64 {
 	return getFactorMapForFunc(e.PairForm, diff)
 }
 
 func (e *Eq) Evaluate() bool {
-	return e.first.Evaluate() == e.second.Evaluate()
+	return e.first.Evaluate().Eq(e.second.Evaluate())
 }
 
 func (e *Eq) Normalize() ComparisonForm {
@@ -108,12 +108,12 @@ func (d *NotEq) Copy() Form {
 	return d.TrueCopy()
 }
 
-func (d *NotEq) getFactorMap() map[string]Numeric {
+func (d *NotEq) getFactorMap() map[string]float64 {
 	return getFactorMapForFunc(d.PairForm, diff)
 }
 
 func (d *NotEq) Evaluate() bool {
-	return d.first.Evaluate() == d.second.Evaluate()
+	return d.first.Evaluate().Neq(d.second.Evaluate())
 }
 
 func (d *NotEq) Normalize() ComparisonForm {
@@ -148,12 +148,12 @@ func (l *Less) Copy() Form {
 	return l.TrueCopy()
 }
 
-func (l *Less) getFactorMap() map[string]Numeric {
+func (l *Less) getFactorMap() map[string]float64 {
 	return getFactorMapForFunc(l.PairForm, diff)
 }
 
 func (l *Less) Evaluate() bool {
-	return l.first.Evaluate() < l.second.Evaluate()
+	return l.first.Evaluate().Le(l.second.Evaluate())
 }
 
 func (l *Less) Normalize() ComparisonForm {
@@ -188,12 +188,12 @@ func (le *LessEq) Copy() Form {
 	return le.TrueCopy()
 }
 
-func (le *LessEq) getFactorMap() map[string]Numeric {
+func (le *LessEq) getFactorMap() map[string]float64 {
 	return getFactorMapForFunc(le.PairForm, diff)
 }
 
 func (le *LessEq) Evaluate() bool {
-	return le.first.Evaluate() <= le.second.Evaluate()
+	return le.first.Evaluate().Leq(le.second.Evaluate())
 }
 
 func (le *LessEq) Normalize() ComparisonForm {
@@ -228,12 +228,12 @@ func (g *Great) Copy() Form {
 	return g.TrueCopy()
 }
 
-func (g *Great) getFactorMap() map[string]Numeric {
+func (g *Great) getFactorMap() map[string]float64 {
 	return getFactorMapForFunc(g.PairForm, diff)
 }
 
 func (g *Great) Evaluate() bool {
-	return g.first.Evaluate() > g.second.Evaluate()
+	return g.first.Evaluate().Gr(g.second.Evaluate())
 }
 
 func (g *Great) Normalize() ComparisonForm {
@@ -268,12 +268,12 @@ func (ge *GreatEq) Copy() Form {
 	return ge.TrueCopy()
 }
 
-func (ge *GreatEq) getFactorMap() map[string]Numeric {
+func (ge *GreatEq) getFactorMap() map[string]float64 {
 	return getFactorMapForFunc(ge.PairForm, diff)
 }
 
 func (ge *GreatEq) Evaluate() bool {
-	return ge.first.Evaluate() >= ge.second.Evaluate()
+	return ge.first.Evaluate().Geq(ge.second.Evaluate())
 }
 
 func (ge *GreatEq) Normalize() ComparisonForm {
