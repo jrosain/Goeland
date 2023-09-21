@@ -159,3 +159,57 @@ func (r Real) Neq(other Numeric) bool {
 		return false
 	}
 }
+
+func (r Real) IsInt() bool {
+	return false
+}
+
+func (r Real) IsRat() bool {
+	return false
+}
+
+func (r Real) ToInt() Numeric {
+	return Integer(r.Floor().Evaluate())
+}
+
+var d = math.SmallestNonzeroFloat64
+
+// This is a simple approximation that finds a rational in the interval [r - d; r + d]
+func (r Real) ToRat() Numeric {
+	sign := 1
+	if r < 0 {
+		sign = -1
+		r = Real(float64(r) * float64(sign))
+	}
+
+	if r == 0 {
+		return Rational{0, 1}
+	}
+
+	result := r.getStrictlyPositiveRational()
+
+	result.top *= sign
+
+	return result
+}
+
+func (r Real) getStrictlyPositiveRational() Rational {
+	result := Rational{1, 1}
+	found := false
+
+	for !found {
+		if result.Evaluate() > float64(r)+d {
+			result.bot += 1
+		} else if result.Evaluate() < float64(r)-d {
+			result.top += 1
+		} else {
+			found = true
+		}
+	}
+
+	return result
+}
+
+func (r Real) ToReal() Numeric {
+	return r
+}

@@ -159,3 +159,23 @@ func (i Integer) Neq(other Numeric) bool {
 		return false
 	}
 }
+
+func (i Integer) IsInt() bool {
+	return true
+}
+
+func (i Integer) IsRat() bool {
+	return false
+}
+
+func (i Integer) ToInt() Numeric {
+	return i
+}
+
+func (i Integer) ToRat() Numeric {
+	return Rational{int(i), 1}
+}
+
+func (i Integer) ToReal() Numeric {
+	return Real(i)
+}

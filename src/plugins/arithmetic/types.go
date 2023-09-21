@@ -31,6 +31,12 @@ type Numeric interface {
 	Le(Numeric) bool
 	Leq(Numeric) bool
 	Neq(Numeric) bool
+
+	IsInt() bool
+	IsRat() bool
+	ToInt() Numeric
+	ToRat() Numeric
+	ToReal() Numeric
 }
 
 func (s String) ToString() string {

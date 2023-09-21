@@ -190,3 +190,23 @@ func (r Rational) Neq(other Numeric) bool {
 		return false
 	}
 }
+
+func (r Rational) IsInt() bool {
+	return false
+}
+
+func (r Rational) IsRat() bool {
+	return true
+}
+
+func (r Rational) ToInt() Numeric {
+	return Integer(r.Floor().Evaluate())
+}
+
+func (r Rational) ToRat() Numeric {
+	return r
+}
+
+func (r Rational) ToReal() Numeric {
+	return Real(r.Evaluate())
+}
