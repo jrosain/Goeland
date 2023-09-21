@@ -113,15 +113,15 @@ func buildConstraintNetwork(formNetworks []basictypes.FormAndTermsList) ([]Netwo
 	for _, formNetwork := range formNetworks {
 		network := Network{}
 		for _, form := range formNetwork {
-			var compForm ComparisonForm
+			var compForm ComparaisonForm
 			var newMap map[string]basictypes.Term
 
 			switch typed := form.GetForm().(type) {
 			case basictypes.Pred:
-				compForm, newMap = convertPred(typed)
+				compForm, newMap = convertComparaisonPred(typed)
 			case basictypes.Not:
 				if pred, ok := typed.GetForm().(basictypes.Pred); ok {
-					compForm, newMap = convertPred(pred)
+					compForm, newMap = convertComparaisonPred(pred)
 					compForm = compForm.Reverse()
 				}
 			}

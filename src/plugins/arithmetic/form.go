@@ -269,3 +269,137 @@ func (r *Round) getFactorMap() map[string]float64 {
 func (r *Round) Evaluate() Numeric {
 	return r.value.Evaluate().Round()
 }
+
+type IsInt struct {
+	*SimpleForm[Evaluable[Numeric]]
+}
+
+func NewIsInt(value Evaluable[Numeric]) *IsInt {
+	return &IsInt{NewSimpleForm(value)}
+}
+
+func (ii *IsInt) Copy() Form {
+	return &IsInt{ii.SimpleForm.TrueCopy()}
+}
+
+func (ii *IsInt) ToString() string {
+	return "isInt(" + ii.SimpleForm.ToString() + ")"
+}
+
+func (ii *IsInt) getFactorMap() map[string]float64 {
+	global.PrintPanic("ARI", "Should not try to get the factor map of a IsInt formula as it does not make any sense.")
+	return nil
+}
+
+func (ii *IsInt) Evaluate() bool {
+	return ii.value.Evaluate().IsInt()
+}
+
+type IsRat struct {
+	*SimpleForm[Evaluable[Numeric]]
+}
+
+func NewIsRat(value Evaluable[Numeric]) *IsRat {
+	return &IsRat{NewSimpleForm(value)}
+}
+
+func (ir *IsRat) Copy() Form {
+	return &IsRat{ir.SimpleForm.TrueCopy()}
+}
+
+func (ir *IsRat) ToString() string {
+	return "isRat(" + ir.SimpleForm.ToString() + ")"
+}
+
+func (ir *IsRat) getFactorMap() map[string]float64 {
+	global.PrintPanic("ARI", "Should not try to get the factor map of a IsRat formula as it does not make any sense.")
+	return nil
+}
+
+func (ir *IsRat) Evaluate() bool {
+	return ir.value.Evaluate().IsRat()
+}
+
+type ToInt struct {
+	*SimpleForm[Evaluable[Numeric]]
+}
+
+func NewToInt(value Evaluable[Numeric]) Evaluable[Numeric] {
+	return &ToInt{NewSimpleForm(value)}
+}
+
+func (ti *ToInt) Copy() Form {
+	return &ToInt{ti.SimpleForm.TrueCopy()}
+}
+
+func (ti *ToInt) ToString() string {
+	return "toInt(" + ti.SimpleForm.ToString() + ")"
+}
+
+func (ti *ToInt) getFactorMap() map[string]float64 {
+	factorMap := make(map[string]float64)
+
+	factorMap[Unit.ToString()] = ti.Evaluate().ToInt().Evaluate()
+
+	return factorMap
+}
+
+func (ti *ToInt) Evaluate() Numeric {
+	return ti.value.Evaluate().ToInt()
+}
+
+type ToRat struct {
+	*SimpleForm[Evaluable[Numeric]]
+}
+
+func NewToRat(value Evaluable[Numeric]) Evaluable[Numeric] {
+	return &ToRat{NewSimpleForm(value)}
+}
+
+func (tr *ToRat) Copy() Form {
+	return &ToRat{tr.SimpleForm.TrueCopy()}
+}
+
+func (tr *ToRat) ToString() string {
+	return "toRat(" + tr.SimpleForm.ToString() + ")"
+}
+
+func (tr *ToRat) getFactorMap() map[string]float64 {
+	factorMap := make(map[string]float64)
+
+	factorMap[Unit.ToString()] = tr.Evaluate().ToRat().Evaluate()
+
+	return factorMap
+}
+
+func (tr *ToRat) Evaluate() Numeric {
+	return tr.value.Evaluate().ToRat()
+}
+
+type ToReal struct {
+	*SimpleForm[Evaluable[Numeric]]
+}
+
+func NewToReal(value Evaluable[Numeric]) Evaluable[Numeric] {
+	return &ToReal{NewSimpleForm(value)}
+}
+
+func (tr *ToReal) Copy() Form {
+	return &ToReal{tr.SimpleForm.TrueCopy()}
+}
+
+func (tr *ToReal) ToString() string {
+	return "toReal(" + tr.SimpleForm.ToString() + ")"
+}
+
+func (tr *ToReal) getFactorMap() map[string]float64 {
+	factorMap := make(map[string]float64)
+
+	factorMap[Unit.ToString()] = tr.Evaluate().ToReal().Evaluate()
+
+	return factorMap
+}
+
+func (tr *ToReal) Evaluate() Numeric {
+	return tr.value.Evaluate().ToReal()
+}

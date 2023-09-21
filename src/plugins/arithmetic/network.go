@@ -1,6 +1,6 @@
 package arithmetic
 
-type Network []ComparisonForm
+type Network []ComparaisonForm
 
 func (n *Network) ToString() string {
 	str := ""

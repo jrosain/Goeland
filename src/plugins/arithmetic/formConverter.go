@@ -35,7 +35,30 @@ func getValueTerm(value Numeric) basictypes.Term {
 	return result
 }
 
-func convertPred(old basictypes.Pred) (result ComparisonForm, termMap map[string]basictypes.Term) {
+func convertPred(old basictypes.Pred) (result Evaluable[bool], termMap map[string]basictypes.Term) {
+	termMap = make(map[string]basictypes.Term)
+	args := []Evaluable[Numeric]{}
+
+	for _, term := range old.GetArgs() {
+		form, terms := convertTermAndRegisterVariables(term)
+		args = append(args, form)
+
+		for _, term := range terms {
+			termMap[varPrefix+term.ToMappedString(basictypes.DefaultMap, false)] = term
+		}
+	}
+
+	switch old.GetID().GetName() {
+	case "$is_int":
+		return NewIsInt(args[0]), termMap
+	case "$is_rat":
+		return NewIsRat(args[0]), termMap
+	default:
+		return convertComparaisonPred(old)
+	}
+}
+
+func convertComparaisonPred(old basictypes.Pred) (result ComparaisonForm, termMap map[string]basictypes.Term) {
 	termMap = make(map[string]basictypes.Term)
 	args := []Evaluable[Numeric]{}
 
@@ -137,6 +160,100 @@ func convertTermAndRegisterVariables(old basictypes.Term) (result Evaluable[Nume
 			form, newTerms := convertTermAndRegisterVariables(typed.GetArgs()[0])
 			terms = append(terms, newTerms...)
 			return NewRound(form), terms
+		}
+
+		return nil, terms
+	case "$quotient":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form1, newTerms1 := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			form2, newTerms2 := convertTermAndRegisterVariables(typed.GetArgs()[1])
+			terms = append(terms, newTerms1...)
+			terms = append(terms, newTerms2...)
+			return NewQuotient(form1, form2), terms
+		}
+
+		return nil, terms
+	case "$quotient_e":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form1, newTerms1 := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			form2, newTerms2 := convertTermAndRegisterVariables(typed.GetArgs()[1])
+			terms = append(terms, newTerms1...)
+			terms = append(terms, newTerms2...)
+			return NewQuotientE(form1, form2), terms
+		}
+
+		return nil, terms
+	case "$quotient_t":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form1, newTerms1 := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			form2, newTerms2 := convertTermAndRegisterVariables(typed.GetArgs()[1])
+			terms = append(terms, newTerms1...)
+			terms = append(terms, newTerms2...)
+			return NewQuotientT(form1, form2), terms
+		}
+
+		return nil, terms
+	case "$quotient_f":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form1, newTerms1 := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			form2, newTerms2 := convertTermAndRegisterVariables(typed.GetArgs()[1])
+			terms = append(terms, newTerms1...)
+			terms = append(terms, newTerms2...)
+			return NewQuotientF(form1, form2), terms
+		}
+
+		return nil, terms
+	case "$remainder_e":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form1, newTerms1 := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			form2, newTerms2 := convertTermAndRegisterVariables(typed.GetArgs()[1])
+			terms = append(terms, newTerms1...)
+			terms = append(terms, newTerms2...)
+			return NewRemainderE(form1, form2), terms
+		}
+
+		return nil, terms
+	case "$remainder_t":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form1, newTerms1 := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			form2, newTerms2 := convertTermAndRegisterVariables(typed.GetArgs()[1])
+			terms = append(terms, newTerms1...)
+			terms = append(terms, newTerms2...)
+			return NewRemainderT(form1, form2), terms
+		}
+
+		return nil, terms
+	case "$remainder_f":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form1, newTerms1 := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			form2, newTerms2 := convertTermAndRegisterVariables(typed.GetArgs()[1])
+			terms = append(terms, newTerms1...)
+			terms = append(terms, newTerms2...)
+			return NewRemainderF(form1, form2), terms
+		}
+
+		return nil, terms
+	case "$to_int":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form, newTerms := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			terms = append(terms, newTerms...)
+			return NewToInt(form), terms
+		}
+
+		return nil, terms
+	case "$to_rat":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form, newTerms := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			terms = append(terms, newTerms...)
+			return NewToRat(form), terms
+		}
+
+		return nil, terms
+	case "$to_real":
+		if typed, ok := old.(basictypes.Fun); ok {
+			form, newTerms := convertTermAndRegisterVariables(typed.GetArgs()[0])
+			terms = append(terms, newTerms...)
+			return NewToReal(form), terms
 		}
 
 		return nil, terms

@@ -1,15 +1,15 @@
 package arithmetic
 
-type ComparisonForm interface {
+type ComparaisonForm interface {
 	Evaluable[bool]
 	EvaluablePair[Numeric]
-	Normalize() ComparisonForm
-	Reverse() ComparisonForm
-	Equalize() ComparisonForm
-	Simplify() ComparisonForm
+	Normalize() ComparaisonForm
+	Reverse() ComparaisonForm
+	Equalize() ComparaisonForm
+	Simplify() ComparaisonForm
 }
 
-func NewComparaisonForm(first, second Evaluable[Numeric], symbol PairOperator) ComparisonForm {
+func NewComparaisonForm(first, second Evaluable[Numeric], symbol PairOperator) ComparaisonForm {
 	switch symbol {
 	case EqOperator:
 		return NewEq(first, second)
@@ -26,7 +26,7 @@ func NewComparaisonForm(first, second Evaluable[Numeric], symbol PairOperator) C
 	}
 }
 
-func buildComparisonComponentsFrom(compForm ComparisonForm) ComparisonForm {
+func buildComparisonComponentsFrom(compForm ComparaisonForm) ComparaisonForm {
 	normalized := compForm.Normalize()
 	reversed := normalized.Reverse()
 	equalized := reversed.Equalize()
@@ -76,19 +76,19 @@ func (e *Eq) Evaluate() bool {
 	return e.first.Evaluate().Eq(e.second.Evaluate())
 }
 
-func (e *Eq) Normalize() ComparisonForm {
+func (e *Eq) Normalize() ComparaisonForm {
 	return NewEq(NewSum(e.first, NewNeg(e.second)), Zero)
 }
 
-func (e *Eq) Reverse() ComparisonForm {
+func (e *Eq) Reverse() ComparaisonForm {
 	return e.TrueCopy()
 }
 
-func (e *Eq) Equalize() ComparisonForm {
+func (e *Eq) Equalize() ComparaisonForm {
 	return e.TrueCopy()
 }
 
-func (e *Eq) Simplify() ComparisonForm {
+func (e *Eq) Simplify() ComparaisonForm {
 	return buildComparisonComponentsFrom(e)
 }
 
@@ -116,19 +116,19 @@ func (d *NotEq) Evaluate() bool {
 	return d.first.Evaluate().Neq(d.second.Evaluate())
 }
 
-func (d *NotEq) Normalize() ComparisonForm {
+func (d *NotEq) Normalize() ComparaisonForm {
 	return NewNotEq(NewSum(d.first, NewNeg(d.second)), Zero)
 }
 
-func (d *NotEq) Reverse() ComparisonForm {
+func (d *NotEq) Reverse() ComparaisonForm {
 	return d.TrueCopy()
 }
 
-func (d *NotEq) Equalize() ComparisonForm {
+func (d *NotEq) Equalize() ComparaisonForm {
 	return d.TrueCopy()
 }
 
-func (d *NotEq) Simplify() ComparisonForm {
+func (d *NotEq) Simplify() ComparaisonForm {
 	return buildComparisonComponentsFrom(d)
 }
 
@@ -156,19 +156,19 @@ func (l *Less) Evaluate() bool {
 	return l.first.Evaluate().Le(l.second.Evaluate())
 }
 
-func (l *Less) Normalize() ComparisonForm {
+func (l *Less) Normalize() ComparaisonForm {
 	return NewLess(NewDiff(l.first, l.second), Zero)
 }
 
-func (l *Less) Reverse() ComparisonForm {
+func (l *Less) Reverse() ComparaisonForm {
 	return NewGreatEq(l.first, l.second)
 }
 
-func (l *Less) Equalize() ComparisonForm {
+func (l *Less) Equalize() ComparaisonForm {
 	return NewLessEq(NewSum(l.first, One), l.second)
 }
 
-func (l *Less) Simplify() ComparisonForm {
+func (l *Less) Simplify() ComparaisonForm {
 	return buildComparisonComponentsFrom(l)
 }
 
@@ -196,19 +196,19 @@ func (le *LessEq) Evaluate() bool {
 	return le.first.Evaluate().Leq(le.second.Evaluate())
 }
 
-func (le *LessEq) Normalize() ComparisonForm {
+func (le *LessEq) Normalize() ComparaisonForm {
 	return NewLessEq(NewDiff(le.first, le.second), Zero)
 }
 
-func (le *LessEq) Reverse() ComparisonForm {
+func (le *LessEq) Reverse() ComparaisonForm {
 	return NewGreat(le.first, le.second)
 }
 
-func (le *LessEq) Equalize() ComparisonForm {
+func (le *LessEq) Equalize() ComparaisonForm {
 	return le.TrueCopy()
 }
 
-func (le *LessEq) Simplify() ComparisonForm {
+func (le *LessEq) Simplify() ComparaisonForm {
 	return buildComparisonComponentsFrom(le)
 }
 
@@ -236,19 +236,19 @@ func (g *Great) Evaluate() bool {
 	return g.first.Evaluate().Gr(g.second.Evaluate())
 }
 
-func (g *Great) Normalize() ComparisonForm {
+func (g *Great) Normalize() ComparaisonForm {
 	return NewGreat(NewDiff(g.first, g.second), Zero)
 }
 
-func (g *Great) Reverse() ComparisonForm {
+func (g *Great) Reverse() ComparaisonForm {
 	return NewLessEq(g.first, g.second)
 }
 
-func (g *Great) Equalize() ComparisonForm {
+func (g *Great) Equalize() ComparaisonForm {
 	return NewGreatEq(NewDiff(g.first, One), g.second)
 }
 
-func (g *Great) Simplify() ComparisonForm {
+func (g *Great) Simplify() ComparaisonForm {
 	return buildComparisonComponentsFrom(g)
 }
 
@@ -276,18 +276,18 @@ func (ge *GreatEq) Evaluate() bool {
 	return ge.first.Evaluate().Geq(ge.second.Evaluate())
 }
 
-func (ge *GreatEq) Normalize() ComparisonForm {
+func (ge *GreatEq) Normalize() ComparaisonForm {
 	return NewGreatEq(NewDiff(ge.first, ge.second), Zero)
 }
 
-func (ge *GreatEq) Reverse() ComparisonForm {
+func (ge *GreatEq) Reverse() ComparaisonForm {
 	return NewLess(ge.first, ge.second)
 }
 
-func (ge *GreatEq) Equalize() ComparisonForm {
+func (ge *GreatEq) Equalize() ComparaisonForm {
 	return ge.TrueCopy()
 }
 
-func (ge *GreatEq) Simplify() ComparisonForm {
+func (ge *GreatEq) Simplify() ComparaisonForm {
 	return buildComparisonComponentsFrom(ge)
 }
