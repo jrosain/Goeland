@@ -71,6 +71,10 @@ func (pf *PairForm[T, U]) getFactorMap() map[string]float64 {
 	return factorMap
 }
 
+func (pf *PairForm[T, U]) ContainsVar() int {
+	return pf.first.ContainsVar() + pf.second.ContainsVar()
+}
+
 func (pf *PairForm[T, U]) areTwoPartsEqual() bool {
 	firstMap := pf.first.getFactorMap()
 	secondMap := pf.second.getFactorMap()
@@ -189,6 +193,10 @@ func (f *Factor) getFactorMap() map[string]float64 {
 	factorMap := make(map[string]float64)
 	childMap := f.GetSecond().getFactorMap()
 
+	if f.GetSecond().ContainsVar() != 0 && f.GetFirst().ContainsVar() != 0 {
+		global.PrintPanic("ARI", "Cannot get the factor map of a Factor function with variables on both sides")
+	}
+
 	for k, v := range childMap {
 		factorMap[k] = v * f.first.Evaluate().Evaluate()
 	}
@@ -228,7 +236,7 @@ func (f *Quotient) Copy() Form {
 func (f *Quotient) getFactorMap() map[string]float64 {
 	factorMap := make(map[string]float64)
 
-	if _, ok := f.second.(AnyConstant); ok {
+	if f.second.ContainsVar() == 0 {
 		firstMap := f.first.getFactorMap()
 		for k, v := range firstMap {
 			factorMap[k] = v / f.second.Evaluate().Evaluate()
@@ -251,7 +259,7 @@ func quotient(f, s Numeric) Numeric {
 func quotientEuclidean(f, s Numeric) Numeric {
 	res := f.Div(s)
 
-	if s.Gr(Zero.Evaluate()) {
+	if s.Gr(ZeroOfType(f)) {
 		res = res.Floor()
 	} else {
 		res = res.Ceil()
@@ -289,21 +297,17 @@ func NewRemainderF(numerator, denominator Evaluable[Numeric]) *Remainder {
 	return &Remainder{NewPairForm(numerator, denominator, "%"), quotientFloor}
 }
 
-func (f *Remainder) Copy() Form {
-	return &Remainder{f.PairForm.TrueCopy(), f.divisionAlgorithm}
+func (r *Remainder) Copy() Form {
+	return &Remainder{r.PairForm.TrueCopy(), r.divisionAlgorithm}
 }
 
-func (f *Remainder) getFactorMap() map[string]float64 {
+func (r *Remainder) getFactorMap() map[string]float64 {
 	factorMap := make(map[string]float64)
 
-	if _, ok := f.first.(AnyConstant); ok {
-		if _, ok := f.second.(AnyConstant); ok {
-			factorMap[Unit.ToString()] = f.Evaluate().Evaluate()
-		} else {
-			global.PrintPanic("ARI", "Trying to get the factor map of a non-linear formula in a remainder function.")
-		}
+	if r.ContainsVar() == 0 {
+		factorMap[Unit.ToString()] = r.Evaluate().Evaluate()
 	} else {
-		if f.areTwoPartsEqual() {
+		if r.areTwoPartsEqual() {
 			factorMap[Unit.ToString()] = Zero.Evaluate().Evaluate()
 		} else {
 			global.PrintPanic("ARI", "Trying to get the factor map of a non-linear formula in a remainder function.")
@@ -313,9 +317,6 @@ func (f *Remainder) getFactorMap() map[string]float64 {
 	return factorMap
 }
 
-func (f *Remainder) Evaluate() Numeric {
-	numerator := f.first.Evaluate()
-	denominator := f.second.Evaluate()
-	divResult := f.divisionAlgorithm(numerator, denominator)
-	return numerator.Mod(divResult)
+func (r *Remainder) Evaluate() Numeric {
+	return r.first.Evaluate().Mod(r.second.Evaluate())
 }

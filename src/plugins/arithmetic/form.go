@@ -63,6 +63,34 @@ type Constant[T Numeric] struct {
 var Zero *Constant[Integer] = NewConstant[Integer](0)
 var One *Constant[Integer] = NewConstant[Integer](1)
 
+func ZeroOfType(other Numeric) Numeric {
+	switch other.(type) {
+	case Integer:
+		return Integer(0)
+	case Rational:
+		return Rational{0, 1}
+	case Real:
+		return Real(0)
+	default:
+		global.PrintPanic("ARI", "Numeric type not recognized")
+		return nil
+	}
+}
+
+func OneOfType(other Numeric) Numeric {
+	switch other.(type) {
+	case Integer:
+		return Integer(1)
+	case Rational:
+		return Rational{1, 1}
+	case Real:
+		return Real(1)
+	default:
+		global.PrintPanic("ARI", "Numeric type not recognized")
+		return nil
+	}
+}
+
 func NewConstant[T Numeric](value T) *Constant[T] {
 	return &Constant[T]{NewSimpleForm(value)}
 }
@@ -81,6 +109,10 @@ func (c *Constant[T]) getFactorMap() map[string]float64 {
 
 func (c *Constant[T]) Evaluate() Numeric {
 	return c.value
+}
+
+func (c *Constant[T]) ContainsVar() int {
+	return 0
 }
 
 func (c *Constant[T]) IsConstant() bool {
@@ -113,7 +145,11 @@ func (v *Variable) getFactorMap() map[string]float64 {
 
 func (v *Variable) Evaluate() Numeric {
 	global.PrintPanic("ARI", "Trying to evaluate a Variable, this should never happen")
-	return Zero.value
+	return nil
+}
+
+func (v *Variable) ContainsVar() int {
+	return 1
 }
 
 type Neg struct {
@@ -158,6 +194,10 @@ func (n *Neg) Evaluate() Numeric {
 	return n.value.Evaluate().Neg()
 }
 
+func (n *Neg) ContainsVar() int {
+	return n.value.ContainsVar()
+}
+
 type Floor struct {
 	*SimpleForm[Evaluable[Numeric]]
 }
@@ -177,6 +217,10 @@ func (f *Floor) ToString() string {
 func (f *Floor) getFactorMap() map[string]float64 {
 	factorMap := make(map[string]float64)
 
+	if f.ContainsVar() != 0 {
+		global.PrintPanic("ARI", "Cannot get the factor map of a Floor function with variables inside")
+	}
+
 	factorMap[Unit.ToString()] = f.Evaluate().Evaluate()
 
 	return factorMap
@@ -184,6 +228,10 @@ func (f *Floor) getFactorMap() map[string]float64 {
 
 func (f *Floor) Evaluate() Numeric {
 	return f.SimpleForm.value.Evaluate().Floor()
+}
+
+func (f *Floor) ContainsVar() int {
+	return f.value.ContainsVar()
 }
 
 type Ceil struct {
@@ -205,6 +253,9 @@ func (c *Ceil) ToString() string {
 func (c *Ceil) getFactorMap() map[string]float64 {
 	factorMap := make(map[string]float64)
 
+	if c.ContainsVar() != 0 {
+		global.PrintPanic("ARI", "Cannot get the factor map of a Ceil function with variables inside")
+	}
 	factorMap[Unit.ToString()] = c.Evaluate().Evaluate()
 
 	return factorMap
@@ -212,6 +263,10 @@ func (c *Ceil) getFactorMap() map[string]float64 {
 
 func (c *Ceil) Evaluate() Numeric {
 	return c.value.Evaluate().Ceil()
+}
+
+func (c *Ceil) ContainsVar() int {
+	return c.value.ContainsVar()
 }
 
 type Trunc struct {
@@ -233,6 +288,10 @@ func (t *Trunc) ToString() string {
 func (t *Trunc) getFactorMap() map[string]float64 {
 	factorMap := make(map[string]float64)
 
+	if t.ContainsVar() != 0 {
+		global.PrintPanic("ARI", "Cannot get the factor map of a Trunc function with variables inside")
+	}
+
 	factorMap[Unit.ToString()] = t.Evaluate().Evaluate()
 
 	return factorMap
@@ -240,6 +299,10 @@ func (t *Trunc) getFactorMap() map[string]float64 {
 
 func (t *Trunc) Evaluate() Numeric {
 	return t.value.Evaluate().Trunc()
+}
+
+func (t *Trunc) ContainsVar() int {
+	return t.value.ContainsVar()
 }
 
 type Round struct {
@@ -261,6 +324,10 @@ func (r *Round) ToString() string {
 func (r *Round) getFactorMap() map[string]float64 {
 	factorMap := make(map[string]float64)
 
+	if r.ContainsVar() != 0 {
+		global.PrintPanic("ARI", "Cannot get the factor map of a Round function with variables inside")
+	}
+
 	factorMap[Unit.ToString()] = r.Evaluate().Evaluate()
 
 	return factorMap
@@ -268,6 +335,10 @@ func (r *Round) getFactorMap() map[string]float64 {
 
 func (r *Round) Evaluate() Numeric {
 	return r.value.Evaluate().Round()
+}
+
+func (r *Round) ContainsVar() int {
+	return r.value.ContainsVar()
 }
 
 type IsInt struct {
@@ -295,6 +366,10 @@ func (ii *IsInt) Evaluate() bool {
 	return ii.value.Evaluate().IsInt()
 }
 
+func (ii *IsInt) ContainsVar() int {
+	return ii.value.ContainsVar()
+}
+
 type IsRat struct {
 	*SimpleForm[Evaluable[Numeric]]
 }
@@ -318,6 +393,10 @@ func (ir *IsRat) getFactorMap() map[string]float64 {
 
 func (ir *IsRat) Evaluate() bool {
 	return ir.value.Evaluate().IsRat()
+}
+
+func (ir *IsRat) ContainsVar() int {
+	return ir.value.ContainsVar()
 }
 
 type ToInt struct {
@@ -348,6 +427,10 @@ func (ti *ToInt) Evaluate() Numeric {
 	return ti.value.Evaluate().ToInt()
 }
 
+func (ti *ToInt) ContainsVar() int {
+	return ti.value.ContainsVar()
+}
+
 type ToRat struct {
 	*SimpleForm[Evaluable[Numeric]]
 }
@@ -376,6 +459,10 @@ func (tr *ToRat) Evaluate() Numeric {
 	return tr.value.Evaluate().ToRat()
 }
 
+func (tr *ToRat) ContainsVar() int {
+	return tr.value.ContainsVar()
+}
+
 type ToReal struct {
 	*SimpleForm[Evaluable[Numeric]]
 }
@@ -402,4 +489,8 @@ func (tr *ToReal) getFactorMap() map[string]float64 {
 
 func (tr *ToReal) Evaluate() Numeric {
 	return tr.value.Evaluate().ToReal()
+}
+
+func (tr *ToReal) ContainsVar() int {
+	return tr.value.ContainsVar()
 }

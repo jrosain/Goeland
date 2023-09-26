@@ -30,6 +30,10 @@ func (r Real) Evaluate() float64 {
 	return float64(r)
 }
 
+func (r Real) ContainsVar() int {
+	return 0
+}
+
 func (r Real) Sum(other Numeric) Numeric {
 	switch typed := other.(type) {
 	case Real:

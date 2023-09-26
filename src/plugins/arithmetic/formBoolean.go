@@ -13,6 +13,8 @@ func NewComparaisonForm(first, second Evaluable[Numeric], symbol PairOperator) C
 	switch symbol {
 	case EqOperator:
 		return NewEq(first, second)
+	case DiffOperator:
+		return NewNotEq(first, second)
 	case LessOperator:
 		return NewLess(first, second)
 	case LessEqOperator:
@@ -97,7 +99,7 @@ type NotEq struct {
 }
 
 func NewNotEq(first, second Evaluable[Numeric]) *NotEq {
-	return &NotEq{NewPairForm(first, second, EqOperator)}
+	return &NotEq{NewPairForm(first, second, DiffOperator)}
 }
 
 func (d *NotEq) TrueCopy() *NotEq {

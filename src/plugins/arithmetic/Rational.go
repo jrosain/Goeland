@@ -53,6 +53,10 @@ func (r Rational) Evaluate() float64 {
 	return float64(r.top) / float64(r.bot)
 }
 
+func (r Rational) ContainsVar() int {
+	return 0
+}
+
 func (r Rational) Sum(other Numeric) Numeric {
 	switch typed := other.(type) {
 	case Rational:

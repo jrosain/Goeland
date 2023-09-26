@@ -5,6 +5,7 @@ import "github.com/GoelandProver/Goeland/global"
 type Evaluable[T any] interface {
 	Form
 	Evaluate() T
+	ContainsVar() int
 }
 
 type String string
