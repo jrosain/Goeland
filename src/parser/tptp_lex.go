@@ -807,13 +807,13 @@ func (lexer *TPTPLex) Lex(yylval *TPTPSymType) int {
 		return token
 	}
 
-	if token := lexer.specialChars(); token != FAILURE_TOKEN {
-		// fmt.Printf("Special char: %d\n", token)
+	if token := lexer.number(yylval); token != FAILURE_TOKEN {
+		// fmt.Printf("Number: %d %s\n", token, yylval.str)
 		return token
 	}
 
-	if token := lexer.number(yylval); token != FAILURE_TOKEN {
-		// fmt.Printf("Number: %d %s\n", token, yylval.str)
+	if token := lexer.specialChars(); token != FAILURE_TOKEN {
+		// fmt.Printf("Special char: %d\n", token)
 		return token
 	}
 
