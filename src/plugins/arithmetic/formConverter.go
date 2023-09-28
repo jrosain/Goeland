@@ -1,7 +1,9 @@
 package arithmetic
 
 import (
+	"math"
 	"strconv"
+	"strings"
 	"sync"
 
 	typing "github.com/GoelandProver/Goeland/polymorphism/typing"
@@ -48,6 +50,10 @@ func convertPred(old basictypes.Pred) (result Evaluable[bool], termMap map[strin
 		}
 	}
 
+	return convertBooleanPred(old, args, termMap)
+}
+
+func convertBooleanPred(old basictypes.Pred, args []Evaluable[Numeric], termMap map[string]basictypes.Term) (Evaluable[bool], map[string]basictypes.Term) {
 	switch old.GetID().GetName() {
 	case "$is_int":
 		return NewIsInt(args[0]), termMap
@@ -258,13 +264,78 @@ func convertTermAndRegisterVariables(old basictypes.Term) (result Evaluable[Nume
 
 		return nil, terms
 	default:
-		value, err := strconv.Atoi(name)
-		if err == nil {
-			setToConstantMap(Integer(value), old)
-			return NewConstant(Integer(value)), terms
+		value, success := getNumericForm(name)
+		if success {
+			setToConstantMap(value, old)
+			return NewConstant(value), terms
 		} else {
 			terms = append(terms, old)
 			return NewFactor(One, NewVariable(old.ToMappedString(basictypes.DefaultMap, false))), terms
 		}
 	}
+}
+
+func getNumericForm(str string) (result Numeric, success bool) {
+	switch {
+	case strings.Contains(str, "/"):
+		return getRationalForm(str)
+	case strings.Contains(str, "e"):
+		return getExponentForm(str, "e")
+	case strings.Contains(str, "E"):
+		return getExponentForm(str, "E")
+	case strings.Contains(str, "."):
+		return getRealForm(str)
+	default:
+		return getIntegerForm(str)
+	}
+}
+
+func getIntegerForm(str string) (result Integer, success bool) {
+	if str[0] == '+' {
+		str = str[1:]
+	}
+
+	res, err := strconv.Atoi(str)
+	return Integer(res), err == nil
+}
+
+func getRationalForm(str string) (result Rational, success bool) {
+	parts := strings.Split(str, "/")
+	if len(parts) != 2 {
+		return Rational{}, false
+	}
+
+	res1, err1 := getIntegerForm(parts[0])
+	res2, err2 := getIntegerForm(parts[1])
+
+	return Rational{int(res1), int(res2)}, err1 && err2
+}
+
+func getRealForm(str string) (result Real, success bool) {
+	if str[0] == '+' {
+		str = str[1:]
+	}
+
+	res, err := strconv.ParseFloat(str, 64)
+	return Real(res), err == nil
+}
+
+func getExponentForm(str string, expSymbol string) (result Real, success bool) {
+	parts := strings.Split(str, expSymbol)
+	if len(parts) != 2 {
+		return Real(0), false
+	}
+
+	res1, err1 := getRealForm(parts[0])
+	res2, err2 := getIntegerForm(parts[1])
+
+	base := 1.0
+	for i := 0; i < int(math.Abs(res2.Evaluate())); i++ {
+		base *= 10
+	}
+	if res2 < 0 {
+		base = 1 / base
+	}
+
+	return Real(res1.Evaluate() * base), err1 && err2
 }
