@@ -733,14 +733,17 @@ func (lexer *TPTPLex) unsignedRational(yylval *TPTPSymType) bool {
 		return false
 	}
 
+	lexer.advance()
+
 	if lexer.c != '/' {
-		lexer.remove(len(yylval.str) - pos - 1)
+		lexer.remove(len(yylval.str) - pos)
 		yylval.str = yylval.str[:pos]
 		return false
 	}
 
 	yylval.str += "/"
 	lexer.advance()
+
 	return lexer.positiveDecimal(yylval)
 }
 
