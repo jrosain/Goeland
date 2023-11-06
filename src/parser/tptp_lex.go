@@ -544,8 +544,10 @@ func (lexer *TPTPLex) decimalExponent(yylval *TPTPSymType) bool {
 		return false
 	}
 
+	lexer.advance()
+
 	if !lexer.isExponent() {
-		lexer.remove(len(yylval.str) - pos - 1)
+		lexer.remove(len(yylval.str) - pos)
 		yylval.str = yylval.str[:pos]
 		return false
 	}
