@@ -96,11 +96,14 @@ var Goeland_path = getGoelandPath()
 func getGoelandPath() string {
 	res := ""
 	split := strings.Split(exec_path, "/")
+	toWrite := false
 
-	for _, element := range split {
-		res += element + "/"
-		if strings.Contains(element, "Goeland") {
-			break
+	for i := len(split) - 1; i >= 0; i-- {
+		if strings.Contains(split[i], "Goeland") {
+			toWrite = true
+		}
+		if toWrite {
+			res = split[i] + "/" + res
 		}
 	}
 
