@@ -72,6 +72,7 @@ The parameters must be passed *before* the problem file. The available parameter
 | -type_proof | Enables type proof visualisation (default: **false**). |
 | -completeness | Enables completeness mode (default: **false**). |
 | -wlogs | Enables the writing of the logs in files (default: **false**). |
+| -wlp-temp *folder* | Writes all temporary files used for the -ari mode to *folder* (default: **./**). |
 
 ### Result values
 

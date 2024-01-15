@@ -44,6 +44,7 @@ import (
 	"flag"
 
 	"github.com/GoelandProver/Goeland/global"
+	"github.com/GoelandProver/Goeland/plugins/arithmetic"
 	"github.com/GoelandProver/Goeland/plugins/coq"
 	"github.com/GoelandProver/Goeland/plugins/dmt"
 	"github.com/GoelandProver/Goeland/plugins/equality"
@@ -239,4 +240,10 @@ func buildOptions() {
 		"Enables the step-by-step mode debugger",
 		func(bool) { global.SetAssisted(true) },
 		func(bool) {})
+	(&option[string]{}).init(
+		"wlp-temp",
+		"./",
+		"Writes all temporary files used for the -ari mode to `folder`",
+		func(string) {},
+		func(folder string) { arithmetic.SetFolder(folder) })
 }

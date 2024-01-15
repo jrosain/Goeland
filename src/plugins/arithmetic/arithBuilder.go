@@ -15,6 +15,12 @@ import (
 
 const HiGHS_PATH = "./plugins/arithmetic/HiGHS/build/bin/highs"
 
+var folder string
+
+func SetFolder(chosenFolder string) {
+	folder = chosenFolder
+}
+
 type CounterExample struct {
 	Variables []basictypes.Term
 	Values    []Numeric
@@ -162,8 +168,8 @@ func getAllNetworks(networks []Network, forms []basictypes.FormAndTermsList) ([]
 }
 
 func tryConstraintNetwork(network Network, termMap map[string]basictypes.Term) (example CounterExample, success bool) {
-	networkFile := "network.lp"
-	solutionFile := "solution.out"
+	networkFile := folder + "network.lp"
+	solutionFile := folder + "solution.out"
 
 	terms := make([]string, len(termMap))
 	i := 0
