@@ -91,6 +91,22 @@ var current_directory_splitted = strings.Split(current_directory, "/")
 var exec_name = current_directory_splitted[len(current_directory_splitted)-1]
 var exec_path = current_directory[:len(current_directory)-len(exec_name)]
 
+var Goeland_path = getGoelandPath()
+
+func getGoelandPath() string {
+	res := ""
+	split := strings.Split(exec_path, "/")
+
+	for _, element := range split {
+		res += element + "/"
+		if element == "Goeland" {
+			break
+		}
+	}
+
+	return res
+}
+
 /* incr the  global number of gouroutine lanched */
 func IncrGoRoutine(i int) {
 	mutex.Lock()

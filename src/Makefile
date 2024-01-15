@@ -3,10 +3,13 @@ GOSRC=main.go
 PLUGINS_SRC=plugins/
 YACCFILE=./parser/tptp_parse.y
 GOPARSER=$(YACCFILE:.y=.go)
-HIGHS_BUILD=./plugins/arithmetic/HiGHS/build/
 
 # Compilation
 BUILD=_build/
+
+HIGHS=plugins/arithmetic/HiGHS/
+HIGHS_BUILD=$(BUILD)HiGHS
+
 GOYACC=goyacc
 GOYACCFLAGS=-l
 GOC=go build
@@ -23,9 +26,9 @@ endif
 # Parse files
 PROB=../../problems/SYN
 
-all: 
+all:
 	$(GOYACC) $(GOYACCFLAGS) -p $(PREFIX) -o $(GOPARSER) $(YACCFILE); \
-	$(GOC) $(GOFLAGS) -o $(BIN) $(GOSRC) 
+	$(GOC) $(GOFLAGS) -o $(BIN) $(GOSRC)
 
 static-linux-release:
 	$(GOYACC) $(GOYACCFLAGS) -p $(PREFIX) -o $(GOPARSER) $(YACCFILE); \
@@ -39,14 +42,13 @@ coq:
 	coqc -Q . Goeland goeland.v
 
 ari:
-	mkdir -p $(HIGHS_BUILD)
-	cd $(HIGHS_BUILD) && cmake .. && cmake --build . && ctest
+	cmake -B$(HIGHS_BUILD) -S$(HIGHS)
+	cmake --build $(HIGHS_BUILD)
 
 clean:
-	rm -f *~ $(GOPARSER) y.output  
-	rm -rf $(BUILD)
-	rm goeland.vo* goeland.glob
-	rm -rf $(HIGHS_BUILD)
+	-rm -f *~ $(GOPARSER) y.output  
+	-rm -rf $(BUILD)
+	-rm goeland.vo* goeland.glob
 
 tests:
 	go test -v -coverprofile=coverage.out ./... || (go tool cover -html=coverage.out && rm coverage.out)

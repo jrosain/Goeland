@@ -13,7 +13,7 @@ import (
 	basictypes "github.com/GoelandProver/Goeland/types/basic-types"
 )
 
-const HiGHS_PATH = "./plugins/arithmetic/HiGHS/build/bin/highs"
+const HiGHS_PATH = "src/_build/HiGHS/bin/highs"
 
 var folder string
 
@@ -214,7 +214,7 @@ func buildFile(network Network, networkFile string, terms map[string]basictypes.
 
 func runHiGHS(networkFile, solutionFile string) {
 	highsWriteSolutionArg := "--solution_file"
-	cmd := exec.Command(HiGHS_PATH, highsWriteSolutionArg, solutionFile, networkFile)
+	cmd := exec.Command(global.Goeland_path+HiGHS_PATH, highsWriteSolutionArg, solutionFile, networkFile)
 	_, err := cmd.Output()
 
 	if err != nil {
