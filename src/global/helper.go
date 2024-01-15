@@ -99,7 +99,7 @@ func getGoelandPath() string {
 
 	for _, element := range split {
 		res += element + "/"
-		if element == "Goeland" {
+		if strings.Contains(element, "Goeland") {
 			break
 		}
 	}
