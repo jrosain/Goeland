@@ -37,7 +37,7 @@ func getValueTerm(value Numeric) basictypes.Term {
 	return result
 }
 
-func convertPred(old basictypes.Pred) (result Evaluable[bool], termMap map[string]basictypes.Term) {
+func convertPred(old basictypes.Pred) (result Evaluable[bool], termMap map[string]basictypes.Term, success bool) {
 	termMap = make(map[string]basictypes.Term)
 	args := []Evaluable[Numeric]{}
 
@@ -53,18 +53,18 @@ func convertPred(old basictypes.Pred) (result Evaluable[bool], termMap map[strin
 	return convertBooleanPred(old, args, termMap)
 }
 
-func convertBooleanPred(old basictypes.Pred, args []Evaluable[Numeric], termMap map[string]basictypes.Term) (Evaluable[bool], map[string]basictypes.Term) {
+func convertBooleanPred(old basictypes.Pred, args []Evaluable[Numeric], termMap map[string]basictypes.Term) (Evaluable[bool], map[string]basictypes.Term, bool) {
 	switch old.GetID().GetName() {
 	case "$is_int":
-		return NewIsInt(args[0]), termMap
+		return NewIsInt(args[0]), termMap, true
 	case "$is_rat":
-		return NewIsRat(args[0]), termMap
+		return NewIsRat(args[0]), termMap, true
 	default:
 		return convertComparaisonPred(old)
 	}
 }
 
-func convertComparaisonPred(old basictypes.Pred) (result ComparaisonForm, termMap map[string]basictypes.Term) {
+func convertComparaisonPred(old basictypes.Pred) (result ComparaisonForm, termMap map[string]basictypes.Term, success bool) {
 	termMap = make(map[string]basictypes.Term)
 	args := []Evaluable[Numeric]{}
 
@@ -79,19 +79,19 @@ func convertComparaisonPred(old basictypes.Pred) (result ComparaisonForm, termMa
 
 	switch old.GetID().GetName() {
 	case "=":
-		return NewEq(args[0], args[1]), termMap
+		return NewEq(args[0], args[1]), termMap, true
 	case "!=":
-		return NewNotEq(args[0], args[1]), termMap
+		return NewNotEq(args[0], args[1]), termMap, true
 	case "$lesseq":
-		return NewLessEq(args[0], args[1]), termMap
+		return NewLessEq(args[0], args[1]), termMap, true
 	case "$less":
-		return NewLess(args[0], args[1]), termMap
+		return NewLess(args[0], args[1]), termMap, true
 	case "$greatereq":
-		return NewGreatEq(args[0], args[1]), termMap
+		return NewGreatEq(args[0], args[1]), termMap, true
 	case "$greater":
-		return NewGreat(args[0], args[1]), termMap
+		return NewGreat(args[0], args[1]), termMap, true
 	default:
-		return nil, termMap
+		return nil, termMap, false
 	}
 }
 

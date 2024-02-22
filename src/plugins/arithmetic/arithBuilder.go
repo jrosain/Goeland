@@ -54,12 +54,12 @@ func IsArithClosure(form basictypes.Form) bool {
 		switch typed := form.(type) {
 		case basictypes.Not:
 			if predTyped, ok := typed.GetForm().(basictypes.Pred); ok {
-				comparaison, _ := convertPred(predTyped)
-				return comparaison.Evaluate()
+				comparaison, _, success := convertPred(predTyped)
+				return success && comparaison.Evaluate()
 			}
 		case basictypes.Pred:
-			comparaison, _ := convertPred(typed)
-			return !comparaison.Evaluate()
+			comparaison, _, success := convertPred(typed)
+			return success && !comparaison.Evaluate()
 		}
 	}
 
@@ -71,13 +71,13 @@ func IsArithmeticable(forms basictypes.FormAndTermsList) bool {
 		switch typed := form.(type) {
 		case basictypes.Not:
 			if predTyped, ok := typed.GetForm().(basictypes.Pred); ok {
-				if converted, _ := convertPred(predTyped); converted != nil {
-					return true
+				if converted, _, success := convertPred(predTyped); converted != nil {
+					return success
 				}
 			}
 		case basictypes.Pred:
-			if converted, _ := convertPred(typed); converted != nil {
-				return true
+			if converted, _, success := convertPred(typed); converted != nil {
+				return success
 			}
 		}
 	}
@@ -124,10 +124,10 @@ func buildConstraintNetwork(formNetworks []basictypes.FormAndTermsList) ([]Netwo
 
 			switch typed := form.GetForm().(type) {
 			case basictypes.Pred:
-				compForm, newMap = convertComparaisonPred(typed)
+				compForm, newMap, _ = convertComparaisonPred(typed)
 			case basictypes.Not:
 				if pred, ok := typed.GetForm().(basictypes.Pred); ok {
-					compForm, newMap = convertComparaisonPred(pred)
+					compForm, newMap, _ = convertComparaisonPred(pred)
 					compForm = compForm.Reverse()
 				}
 			}

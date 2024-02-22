@@ -89,15 +89,15 @@ func (i Integer) Neg() Numeric {
 }
 
 func (i Integer) Floor() Numeric {
-	return Integer(math.Floor(float64(i)))
+	return i
 }
 
 func (i Integer) Ceil() Numeric {
-	return Integer(math.Ceil(float64(i)))
+	return i
 }
 
 func (i Integer) Trunc() Numeric {
-	return Integer(math.Trunc(float64(i)))
+	return i
 }
 
 func (i Integer) Round() Numeric {
