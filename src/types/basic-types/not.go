@@ -114,6 +114,11 @@ func (n Not) CleanFormula() Form {
 	return n
 }
 
+func (n Not) EvaluateFormula() Form {
+	n.f = n.f.EvaluateFormula()
+	return n
+}
+
 /** - Other Methods **/
 
 func (n Not) GetForm() Form {

@@ -62,6 +62,8 @@ type Form interface {
 	ReplaceVarByTerm(old Var, new Term) Form
 	RenameVariables() Form
 	CleanFormula() Form
+
+	EvaluateFormula() Form
 }
 
 /*** Functions ***/

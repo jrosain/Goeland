@@ -204,3 +204,11 @@ func (lf FormAndTermsList) FilterPred(pola bool) FormList {
 	}
 	return res
 }
+
+func (lf FormAndTermsList) Evaluate() FormAndTermsList {
+	for i, fat := range lf {
+		lf[i] = fat.Evaluate()
+	}
+
+	return lf
+}

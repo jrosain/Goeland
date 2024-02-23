@@ -471,6 +471,11 @@ func proofSearchDestructive(father_id uint64, st complextypes.State, cha Communi
 	global.PrintDebug("PS", fmt.Sprintf("Child of %v - node id : %v - original node id : %v", father_id, node_id, original_node_id))
 	global.PrintDebug("PS", fmt.Sprintf("Meta to reintroduce: %v", global.IntListToString(meta_to_reintroduce)))
 
+	if global.GetArithModule() {
+		st.SetLF(st.GetLF().Evaluate())
+		st.SetAtomic(st.GetAtomic().Evaluate())
+	}
+
 	if global.GetProof() {
 		st.SetCurrentProofNodeId(node_id)
 	}

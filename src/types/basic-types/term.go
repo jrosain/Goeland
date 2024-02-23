@@ -59,6 +59,8 @@ type Term interface {
 	GetMetas() MetaList
 	GetSubTerms() TermList
 	ReplaceSubTermBy(original_term, new_term Term) Term
+
+	EvaluateTerm() Term
 }
 
 type TypedTerm interface {

@@ -117,3 +117,8 @@ func (o Or) CleanFormula() Form {
 	o.FormList.CleanFormList()
 	return o
 }
+
+func (o Or) EvaluateFormula() Form {
+	o.FormList.EvaluateFormList()
+	return o
+}

@@ -81,3 +81,8 @@ func (fat FormAndTerms) Equals(fat2 FormAndTerms) bool {
 func (fat FormAndTerms) ToString() string {
 	return fat.GetForm().ToString()
 }
+
+func (fat FormAndTerms) Evaluate() FormAndTerms {
+	fat.form = fat.form.EvaluateFormula()
+	return fat
+}

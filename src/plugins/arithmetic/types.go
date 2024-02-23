@@ -1,6 +1,8 @@
 package arithmetic
 
-import "github.com/GoelandProver/Goeland/global"
+import (
+	"github.com/GoelandProver/Goeland/global"
+)
 
 type Evaluable[T any] interface {
 	Form
@@ -38,6 +40,8 @@ type Numeric interface {
 	ToInt() Numeric
 	ToRat() Numeric
 	ToReal() Numeric
+
+	GetHint() string
 }
 
 func (s String) ToString() string {

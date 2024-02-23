@@ -57,6 +57,11 @@ func (t TermForm) ReplaceTypeByMeta([]typing.TypeVar, int) basictypes.Form      
 func (t TermForm) ReplaceVarByTerm(old basictypes.Var, new basictypes.Term) basictypes.Form { return t }
 func (tf TermForm) GetIndex() int                                                           { return tf.index }
 
+func (t TermForm) EvaluateFormula() basictypes.Form {
+	t.t = t.t.EvaluateTerm()
+	return t
+}
+
 func (t TermForm) Equals(t2 any) bool {
 	switch nt := t2.(type) {
 	case TermForm:

@@ -71,6 +71,10 @@ func (p Pred) GetTypeVars() []typing.TypeApp { return typing.CopyTypeAppList(p.t
 func (p Pred) GetType() typing.TypeScheme { return p.typeHint }
 func (p Pred) RenameVariables() Form      { return p }
 func (p Pred) CleanFormula() Form         { return p }
+func (p Pred) EvaluateFormula() Form {
+	p.args.EvaluateTermList()
+	return p
+}
 
 func (p Pred) ToMappedString(map_ MapString, type_ bool) string {
 	if len(p.typeVars) == 0 && len(p.GetArgs()) == 0 {

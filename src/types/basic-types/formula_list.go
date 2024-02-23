@@ -200,6 +200,14 @@ func (lf FormList) CleanFormList() FormList {
 	return lf
 }
 
+func (lf FormList) EvaluateFormList() FormList {
+	for i, f := range lf {
+		lf[i] = f.EvaluateFormula()
+	}
+
+	return lf
+}
+
 /*** Functions ***/
 
 /** Makers **/

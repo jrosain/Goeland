@@ -107,6 +107,10 @@ func (m Meta) GetSubTerms() TermList {
 	return TermList{m}
 }
 
+func (m Meta) EvaluateTerm() Term {
+	return m
+}
+
 func MakeEmptyMeta() Meta {
 	return MakeMeta(-1, -1, "-1", -1, nil, typing.DefaultType())
 }

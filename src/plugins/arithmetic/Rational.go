@@ -214,3 +214,7 @@ func (r Rational) ToRat() Numeric {
 func (r Rational) ToReal() Numeric {
 	return Real(r.Evaluate())
 }
+
+func (r Rational) GetHint() string {
+	return "$rat"
+}

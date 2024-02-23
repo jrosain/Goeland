@@ -21,6 +21,10 @@ func SetFolder(chosenFolder string) {
 	folder = chosenFolder
 }
 
+func Enable() {
+	basictypes.EvaluateTermStrategy = evaluateForm
+}
+
 type CounterExample struct {
 	Variables []basictypes.Term
 	Values    []Numeric

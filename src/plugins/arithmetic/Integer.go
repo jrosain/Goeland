@@ -183,3 +183,7 @@ func (i Integer) ToRat() Numeric {
 func (i Integer) ToReal() Numeric {
 	return Real(i)
 }
+
+func (i Integer) GetHint() string {
+	return "$int"
+}

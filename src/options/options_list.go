@@ -193,7 +193,10 @@ func buildOptions() {
 		"ari",
 		false,
 		"Enables the use of (TPTP) arithmetic functions",
-		func(bool) { global.SetArithModule(true) },
+		func(bool) {
+			global.SetArithModule(true)
+			arithmetic.Enable()
+		},
 		func(bool) {})
 	(&option[int]{}).init(
 		"core_limit",

@@ -91,3 +91,7 @@ func (v Var) ToMappedString(map_ MapString, type_ bool) string {
 	}
 	return fmt.Sprintf("%s_%d", v.GetName(), v.GetIndex())
 }
+
+func (v Var) EvaluateTerm() Term {
+	return v
+}

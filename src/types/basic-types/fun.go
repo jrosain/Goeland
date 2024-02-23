@@ -131,3 +131,18 @@ func (f Fun) GetSubTerms() TermList {
 	}
 	return res
 }
+
+func (f Fun) EvaluateTerm() Term {
+	term := EvaluateTermStrategy(f)
+
+	if term == nil {
+		f.args.EvaluateTermList()
+		return f
+	}
+
+	return term
+}
+
+var EvaluateTermStrategy = func(f Fun) Term {
+	return nil
+}

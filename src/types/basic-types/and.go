@@ -117,3 +117,8 @@ func (a And) CleanFormula() Form {
 	a.CleanFormList()
 	return a
 }
+
+func (a And) EvaluateFormula() Form {
+	a.FormList.EvaluateFormList()
+	return a
+}

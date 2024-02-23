@@ -202,3 +202,11 @@ func (tl TermList) replaceFirstOccurrenceTermList(old_term, new_term Term) TermL
 func AreEqualsTypeVarList(tv1, tv2 []typing.TypeVar) bool {
 	return ComparableList[typing.TypeVar](tv1).Equals(tv2)
 }
+
+func (tl TermList) EvaluateTermList() TermList {
+	for i, term := range tl {
+		tl[i] = term.EvaluateTerm()
+	}
+
+	return tl
+}

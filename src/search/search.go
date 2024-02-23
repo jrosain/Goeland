@@ -388,6 +388,7 @@ func ManageClosureRuleNoArith(father_id uint64, st *complextypes.State, c Commun
 /* Apply rules with priority (closure < rewrite < alpha < delta < closure with mm < beta < gamma) */
 func applyRules(fatherId uint64, state complextypes.State, c Communication, newAtomics basictypes.FormAndTermsList, currentNodeId int, originalNodeId int, metaToReintroduce []int) {
 	global.PrintDebug("AR", "ApplyRule")
+
 	switch {
 	case len(newAtomics) > 0 && global.IsLoaded("dmt") && len(state.GetSubstsFound()) == 0:
 		manageRewriteRules(fatherId, state, c, newAtomics, currentNodeId, originalNodeId, metaToReintroduce)

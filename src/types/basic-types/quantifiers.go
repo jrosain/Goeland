@@ -102,6 +102,10 @@ func (e Ex) CleanFormula() Form {
 	}
 }
 
+func (e Ex) EvaluateFormula() Form {
+	return evaluateQuantifiedFormula(&e)
+}
+
 func (e Ex) GetSubTerms() TermList {
 	return e.GetForm().GetSubTerms()
 }
@@ -158,6 +162,10 @@ func (a All) CleanFormula() Form {
 	} else {
 		return a.f
 	}
+}
+
+func (a All) EvaluateFormula() Form {
+	return evaluateQuantifiedFormula(&a)
 }
 
 func (a All) GetSubTerms() TermList {
@@ -241,6 +249,10 @@ func (a AllType) CleanFormula() Form {
 	return a
 }
 
+func (a AllType) EvaluateFormula() Form {
+	return a.GetForm().EvaluateFormula()
+}
+
 func (a AllType) GetSubTerms() TermList {
 	return a.GetForm().GetSubTerms()
 }
@@ -313,6 +325,10 @@ func cleanQuantifiedFormula(qf QuantifiedForm) ([]Var, Form) {
 	return newList, f
 }
 
+func evaluateQuantifiedFormula(qf QuantifiedForm) Form {
+	return qf.GetForm().EvaluateFormula()
+}
+
 func checkSeenVars(varList []Var, terms TermList) []bool {
 	areSeen := make([]bool, len(varList))
 
@@ -323,6 +339,7 @@ func checkSeenVars(varList []Var, terms TermList) []bool {
 			}
 		}
 	}
+
 	return areSeen
 }
 
@@ -334,5 +351,6 @@ func getSeenVars(areSeen []bool, varList []Var) []Var {
 			newList = append(newList, varList[i])
 		}
 	}
+
 	return newList
 }
