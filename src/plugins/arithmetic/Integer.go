@@ -7,6 +7,10 @@ import (
 
 type Integer int
 
+func (i Integer) panicOperation() {
+	PanicOperation("Integer")
+}
+
 func (i Integer) ToString() string {
 	return strconv.Itoa(int(i))
 }
@@ -39,7 +43,7 @@ func (i Integer) Sum(other Numeric) Numeric {
 	case Integer:
 		return Integer(i + typed)
 	default:
-		PanicOperation("Integer")
+		i.panicOperation()
 		return nil
 	}
 }
@@ -49,7 +53,7 @@ func (i Integer) Diff(other Numeric) Numeric {
 	case Integer:
 		return Integer(i - typed)
 	default:
-		PanicOperation("Integer")
+		i.panicOperation()
 		return nil
 	}
 }
@@ -59,7 +63,7 @@ func (i Integer) Mult(other Numeric) Numeric {
 	case Integer:
 		return Integer(i * typed)
 	default:
-		PanicOperation("Integer")
+		i.panicOperation()
 		return nil
 	}
 }
@@ -69,7 +73,7 @@ func (i Integer) Div(other Numeric) Numeric {
 	case Integer:
 		return Integer(i / typed)
 	default:
-		PanicOperation("Integer")
+		i.panicOperation()
 		return nil
 	}
 }
@@ -79,7 +83,7 @@ func (i Integer) Mod(other Numeric) Numeric {
 	case Integer:
 		return Integer(i % typed)
 	default:
-		PanicOperation("Integer")
+		i.panicOperation()
 		return nil
 	}
 }
@@ -109,7 +113,7 @@ func (i Integer) Eq(other Numeric) bool {
 	case Integer:
 		return int(i) == int(typed)
 	default:
-		PanicOperation("Integer")
+		i.panicOperation()
 		return false
 	}
 }
@@ -119,7 +123,7 @@ func (i Integer) Gr(other Numeric) bool {
 	case Integer:
 		return int(i) > int(typed)
 	default:
-		PanicOperation("Integer")
+		i.panicOperation()
 		return false
 	}
 }
@@ -129,7 +133,7 @@ func (i Integer) Geq(other Numeric) bool {
 	case Integer:
 		return int(i) >= int(typed)
 	default:
-		PanicOperation("Integer")
+		i.panicOperation()
 		return false
 	}
 }
@@ -139,7 +143,7 @@ func (i Integer) Le(other Numeric) bool {
 	case Integer:
 		return int(i) < int(typed)
 	default:
-		PanicOperation("Integer")
+		i.panicOperation()
 		return false
 	}
 }
@@ -149,7 +153,7 @@ func (i Integer) Leq(other Numeric) bool {
 	case Integer:
 		return int(i) <= int(typed)
 	default:
-		PanicOperation("Integer")
+		i.panicOperation()
 		return false
 	}
 }
@@ -159,7 +163,7 @@ func (i Integer) Neq(other Numeric) bool {
 	case Integer:
 		return int(i) != int(typed)
 	default:
-		PanicOperation("Integer")
+		i.panicOperation()
 		return false
 	}
 }

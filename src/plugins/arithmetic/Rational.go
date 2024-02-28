@@ -28,6 +28,10 @@ func (r Rational) Negate() Rational {
 	return Rational{-r.top, r.bot}
 }
 
+func (r Rational) panicOperation() {
+	PanicOperation("Rational")
+}
+
 func (r Rational) ToString() string {
 	return fmt.Sprintf("%v/%v", r.top, r.bot)
 }
@@ -62,7 +66,7 @@ func (r Rational) Sum(other Numeric) Numeric {
 	case Rational:
 		return Rational{(r.top*typed.bot + typed.top*r.bot), r.bot * typed.bot}.Simplify()
 	default:
-		PanicOperation("Rational")
+		r.panicOperation()
 		return nil
 	}
 }
@@ -72,7 +76,7 @@ func (r Rational) Diff(other Numeric) Numeric {
 	case Rational:
 		return Rational{(r.top*typed.bot - typed.top*r.bot), r.bot * typed.bot}.Simplify()
 	default:
-		PanicOperation("Rational")
+		r.panicOperation()
 		return nil
 	}
 }
@@ -82,7 +86,7 @@ func (r Rational) Mult(other Numeric) Numeric {
 	case Rational:
 		return Rational{r.top * typed.top, r.bot * typed.bot}.Simplify()
 	default:
-		PanicOperation("Rational")
+		r.panicOperation()
 		return nil
 	}
 }
@@ -92,7 +96,7 @@ func (r Rational) Div(other Numeric) Numeric {
 	case Rational:
 		return r.Mult(Rational{typed.bot, typed.top})
 	default:
-		PanicOperation("Rational")
+		r.panicOperation()
 		return nil
 	}
 }
@@ -102,7 +106,7 @@ func (r Rational) Mod(other Numeric) Numeric {
 	case Rational:
 		return Rational{r.top % typed.top, r.bot * typed.bot}.Simplify()
 	default:
-		PanicOperation("Rational")
+		r.panicOperation()
 		return nil
 	}
 }
@@ -140,7 +144,7 @@ func (r Rational) Eq(other Numeric) bool {
 	case Rational:
 		return r.Evaluate() == typed.Evaluate()
 	default:
-		PanicOperation("Rational")
+		r.panicOperation()
 		return false
 	}
 }
@@ -150,7 +154,7 @@ func (r Rational) Gr(other Numeric) bool {
 	case Rational:
 		return r.Evaluate() > typed.Evaluate()
 	default:
-		PanicOperation("Rational")
+		r.panicOperation()
 		return false
 	}
 }
@@ -160,7 +164,7 @@ func (r Rational) Geq(other Numeric) bool {
 	case Rational:
 		return r.Evaluate() >= typed.Evaluate()
 	default:
-		PanicOperation("Rational")
+		r.panicOperation()
 		return false
 	}
 }
@@ -170,7 +174,7 @@ func (r Rational) Le(other Numeric) bool {
 	case Rational:
 		return r.Evaluate() < typed.Evaluate()
 	default:
-		PanicOperation("Rational")
+		r.panicOperation()
 		return false
 	}
 }
@@ -180,7 +184,7 @@ func (r Rational) Leq(other Numeric) bool {
 	case Rational:
 		return r.Evaluate() <= typed.Evaluate()
 	default:
-		PanicOperation("Rational")
+		r.panicOperation()
 		return false
 	}
 }
@@ -190,7 +194,7 @@ func (r Rational) Neq(other Numeric) bool {
 	case Rational:
 		return r.Evaluate() != typed.Evaluate()
 	default:
-		PanicOperation("Rational")
+		r.panicOperation()
 		return false
 	}
 }

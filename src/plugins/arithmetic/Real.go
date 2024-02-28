@@ -7,6 +7,10 @@ import (
 
 type Real float64
 
+func (r Real) panicOperation() {
+	PanicOperation("Real")
+}
+
 func (r Real) ToString() string {
 	return fmt.Sprintf("%v", r)
 }
@@ -39,7 +43,7 @@ func (r Real) Sum(other Numeric) Numeric {
 	case Real:
 		return Real(r + typed)
 	default:
-		PanicOperation("Real")
+		r.panicOperation()
 		return nil
 	}
 }
@@ -49,7 +53,7 @@ func (r Real) Diff(other Numeric) Numeric {
 	case Real:
 		return Real(r - typed)
 	default:
-		PanicOperation("Real")
+		r.panicOperation()
 		return nil
 	}
 }
@@ -59,7 +63,7 @@ func (r Real) Mult(other Numeric) Numeric {
 	case Real:
 		return Real(r * typed)
 	default:
-		PanicOperation("Real")
+		r.panicOperation()
 		return nil
 	}
 }
@@ -69,7 +73,7 @@ func (r Real) Div(other Numeric) Numeric {
 	case Real:
 		return Real(r / typed)
 	default:
-		PanicOperation("Real")
+		r.panicOperation()
 		return nil
 	}
 }
@@ -79,7 +83,7 @@ func (r Real) Mod(other Numeric) Numeric {
 	case Real:
 		return Real(math.Mod(float64(r), float64(typed)))
 	default:
-		PanicOperation("Real")
+		r.panicOperation()
 		return nil
 	}
 }
@@ -109,7 +113,7 @@ func (r Real) Eq(other Numeric) bool {
 	case Real:
 		return float64(r) == float64(typed)
 	default:
-		PanicOperation("Real")
+		r.panicOperation()
 		return false
 	}
 }
@@ -119,7 +123,7 @@ func (r Real) Gr(other Numeric) bool {
 	case Real:
 		return float64(r) > float64(typed)
 	default:
-		PanicOperation("Real")
+		r.panicOperation()
 		return false
 	}
 }
@@ -129,7 +133,7 @@ func (r Real) Geq(other Numeric) bool {
 	case Real:
 		return float64(r) >= float64(typed)
 	default:
-		PanicOperation("Real")
+		r.panicOperation()
 		return false
 	}
 }
@@ -139,7 +143,7 @@ func (r Real) Le(other Numeric) bool {
 	case Real:
 		return float64(r) < float64(typed)
 	default:
-		PanicOperation("Real")
+		r.panicOperation()
 		return false
 	}
 }
@@ -149,7 +153,7 @@ func (r Real) Leq(other Numeric) bool {
 	case Real:
 		return float64(r) <= float64(typed)
 	default:
-		PanicOperation("Real")
+		r.panicOperation()
 		return false
 	}
 }
@@ -159,7 +163,7 @@ func (r Real) Neq(other Numeric) bool {
 	case Real:
 		return float64(r) != float64(typed)
 	default:
-		PanicOperation("Real")
+		r.panicOperation()
 		return false
 	}
 }
