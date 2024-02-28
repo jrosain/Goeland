@@ -99,7 +99,7 @@ func (pf *PairForm[T, U]) areTwoPartsEqual() bool {
 func (pf *PairForm[T, U]) TrueCopy() *PairForm[Evaluable[Numeric], Evaluable[Numeric]] {
 	if typedFirst, ok := pf.first.Copy().(Evaluable[Numeric]); ok {
 		if typedSecond, ok := pf.second.Copy().(Evaluable[Numeric]); ok {
-			return NewPairForm[Evaluable[Numeric], Evaluable[Numeric]](typedFirst, typedSecond, pf.symbol)
+			return NewPairForm(typedFirst, typedSecond, pf.symbol)
 		}
 	}
 
@@ -143,7 +143,7 @@ var diff = func(first, second float64) float64 {
 }
 
 func (s *Sum) getFactorMap() map[string]float64 {
-	return getFactorMapForFunc[Evaluable[Numeric], Evaluable[Numeric]](s.PairForm, sum)
+	return getFactorMapForFunc(s.PairForm, sum)
 }
 
 func (s *Sum) Evaluate() Numeric {
@@ -182,7 +182,7 @@ func NewProduct(first, second Evaluable[Numeric]) *Factor {
 }
 
 func NewFactor(factor AnyConstant, value Evaluable[Numeric]) *Factor {
-	return &Factor{NewPairForm[Evaluable[Numeric], Evaluable[Numeric]](factor, value, NoOperator)}
+	return &Factor{NewPairForm[Evaluable[Numeric]](factor, value, NoOperator)}
 }
 
 func (f *Factor) Copy() Form {

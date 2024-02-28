@@ -12,7 +12,7 @@ func (r Real) panicOperation() {
 }
 
 func (r Real) ToString() string {
-	return fmt.Sprintf("%v", r)
+	return fmt.Sprintf("%f", r)
 }
 
 func (r Real) Equals(other any) bool {
