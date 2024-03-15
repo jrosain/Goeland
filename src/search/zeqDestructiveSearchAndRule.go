@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/GoelandProver/Goeland/global"
+	typing "github.com/GoelandProver/Goeland/polymorphism/typing"
 	basictypes "github.com/GoelandProver/Goeland/types/basic-types"
 	complextypes "github.com/GoelandProver/Goeland/types/complex-types"
 	visualization "github.com/GoelandProver/Goeland/visualization_exchanges"
@@ -67,10 +68,32 @@ func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.St
 	}
 }
 
-func (ds *destructiveSearch) manageZeqRules(fatherId uint64, state complextypes.State, c Communication, originalNodeId int, eqs, neqs basictypes.FormAndTermsList) {
+func (ds *destructiveSearch) applyZeqRules(fatherId uint64, state complextypes.State, c Communication, originalNodeId int, eqs, neqs basictypes.FormAndTermsList) {
 	global.PrintDebug("PS", "Zeq rule")
 	hdfEq := eqs[0]
 	hdfNeq := neqs[0]
 	global.PrintDebug("PS", fmt.Sprintf("Rule applied on : %s %s", hdfEq.ToString(), hdfNeq.ToString()))
+
+	resultForms := basictypes.MakeEmptyFormAndTermsList()
+
+	if typedEq, ok := hdfEq.GetForm().(basictypes.Pred); ok {
+		if typedNeq, ok := hdfNeq.GetForm().(basictypes.Pred); ok {
+			s, t := typedEq.GetArgs().Get(0), typedEq.GetArgs().Get(1)
+			u, v := typedNeq.GetArgs().Get(0), typedNeq.GetArgs().Get(1)
+
+			vneqs := basictypes.RefuteForm(basictypes.MakerPred(
+				basictypes.Id_eq,
+				basictypes.NewTermList(v, s),
+				[]typing.TypeApp{},
+			))
+
+			tnequ := basictypes.RefuteForm(basictypes.MakerPred(
+				basictypes.Id_eq,
+				basictypes.NewTermList(t, u),
+				[]typing.TypeApp{},
+			))
+		}
+
+	}
 
 }
