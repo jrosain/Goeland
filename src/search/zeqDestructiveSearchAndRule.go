@@ -1,6 +1,8 @@
 package search
 
 import (
+	"fmt"
+
 	"github.com/GoelandProver/Goeland/global"
 	basictypes "github.com/GoelandProver/Goeland/types/basic-types"
 	complextypes "github.com/GoelandProver/Goeland/types/complex-types"
@@ -12,10 +14,13 @@ var zeqEnable = false
 func EnableZeqDestructiveSearch() {
 	global.PrintInfo("ZEQ", "ZEQ plugin enabled")
 	zeqEnable = true
-
 }
 
 func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.State, c Communication, newAtomics basictypes.FormAndTermsList, currentNodeId int, originalNodeId int, metaToReintroduce []int) {
+
+	var eqs basictypes.FormAndTermsList
+	var neqs basictypes.FormAndTermsList
+
 	global.PrintDebug("AR", "ApplyRule")
 	switch {
 	case len(newAtomics) > 0 && global.IsLoaded("dmt") && len(state.GetSubstsFound()) == 0:
@@ -25,7 +30,7 @@ func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.St
 		ds.manageAlphaRules(fatherId, state, c, originalNodeId)
 
 	// [TEMP] the case for zeq rules
-	//case len(state.GetZeq()) > 0:
+	case len(eqs) > 0 && len(neqs) > 0:
 	//	ds.manageZeqRules(fatherId, state, c, originalNodeId)
 
 	case len(state.GetDelta()) > 0:
@@ -47,4 +52,12 @@ func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.St
 		global.PrintDebug("PS", "Nothing found, return sat")
 		ds.sendSubToFather(c, false, false, fatherId, state, []complextypes.SubstAndForm{}, currentNodeId, originalNodeId, []int{})
 	}
+}
+
+func (ds *destructiveSearch) manageZeqRules(fatherId uint64, state complextypes.State, c Communication, originalNodeId int, eqs, neqs basictypes.FormAndTermsList) {
+	global.PrintDebug("PS", "Zeq rule")
+	hdfEq := eqs[0]
+	hdfNeq := neqs[0]
+	global.PrintDebug("PS", fmt.Sprintf("Rule applied on : %s %s", hdfEq.ToString(), hdfNeq.ToString()))
+
 }
