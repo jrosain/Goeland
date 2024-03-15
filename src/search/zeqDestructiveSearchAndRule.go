@@ -10,17 +10,31 @@ import (
 	visualization "github.com/GoelandProver/Goeland/visualization_exchanges"
 )
 
-var zeqEnable = false
+func equalitySort(fatherId uint64, state complextypes.State, c Communication, newAtomics basictypes.FormAndTermsList, currentNodeId int, originalNodeId int, metaToReintroduce []int) (eqs, neqs basictypes.FormAndTermsList) {
+	atoms := state.GetAtomic()
+	neqs = basictypes.MakeEmptyFormAndTermsList()
+	eqs = basictypes.MakeEmptyFormAndTermsList()
 
-func EnableZeqDestructiveSearch() {
-	global.PrintInfo("ZEQ", "ZEQ plugin enabled")
-	zeqEnable = true
+	for _, elem := range atoms {
+		switch formTyped := elem.GetForm().(type) {
+		case basictypes.Not:
+			if typed, ok := formTyped.GetForm().(basictypes.Pred); ok && typed.GetID().Equals(basictypes.Id_eq) {
+				neqs = neqs.AppendIfNotContains(elem)
+			}
+		case basictypes.Pred:
+			if formTyped.GetID().Equals(basictypes.Id_eq) {
+				eqs = eqs.AppendIfNotContains(elem)
+			}
+		}
+	}
+
+	return eqs, neqs
 }
 
 func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.State, c Communication, newAtomics basictypes.FormAndTermsList, currentNodeId int, originalNodeId int, metaToReintroduce []int) {
 
-	var eqs basictypes.FormAndTermsList
-	var neqs basictypes.FormAndTermsList
+	eqs, neqs := equalitySort(fatherId, state, c, newAtomics, currentNodeId, originalNodeId, metaToReintroduce)
+	fmt.Printf("Equations : %d, Inequations : %d\n", eqs.Len(), neqs.Len())
 
 	global.PrintDebug("AR", "ApplyRule")
 	switch {
@@ -30,12 +44,11 @@ func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.St
 	case len(state.GetAlpha()) > 0:
 		ds.manageAlphaRules(fatherId, state, c, originalNodeId)
 
-	// [TEMP] the case for zeq rules
-	case len(eqs) > 0 && len(neqs) > 0:
-		ds.applyZeqRules(fatherId, state, c, originalNodeId, eqs, neqs)
-
 	case len(state.GetDelta()) > 0:
 		ds.manageDeltaRules(fatherId, state, c, originalNodeId)
+
+	case (len(eqs) > 0) && (len(neqs) > 0):
+		fmt.Printf("TRANSSYM\n")
 
 	case len(state.GetBeta()) > 0:
 		ds.manageBetaRules(fatherId, state, c, currentNodeId, originalNodeId, metaToReintroduce)
