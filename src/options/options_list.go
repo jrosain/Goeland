@@ -301,7 +301,8 @@ func buildOptions() {
 		false,
 		"Enables zenon equality rules",
 		func(bool) {
-
+			// global.SetZeq(true)
+			search.EnableZeq()
 		},
 		func(bool) {})
 }
