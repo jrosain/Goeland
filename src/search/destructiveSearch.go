@@ -77,7 +77,7 @@ func NewDestructiveSearch() SearchAlgorithm {
 	ds := &destructiveSearch{}
 
 	fmt.Printf("Z : %d\n", global.GetZeq())
-	if zeqEnabled {
+	if ZeqEnabled {
 		fmt.Printf("ICI MATT\n")
 		ds.doCorrectApplyRules = ds.zeqApplyRule
 	} else {

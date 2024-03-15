@@ -10,10 +10,10 @@ import (
 	visualization "github.com/GoelandProver/Goeland/visualization_exchanges"
 )
 
-var zeqEnabled = false
+var ZeqEnabled = false
 
 func EnableZeq() {
-	zeqEnabled = true
+	ZeqEnabled = true
 }
 
 func equalitySort(fatherId uint64, state complextypes.State, c Communication, newAtomics basictypes.FormAndTermsList, currentNodeId int, originalNodeId int, metaToReintroduce []int) (eqs, neqs basictypes.FormAndTermsList) {
