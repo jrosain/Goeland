@@ -79,6 +79,10 @@ func (ds *destructiveSearch) applyZeqRules(fatherId uint64, state complextypes.S
 				basictypes.NewTermList(t, u),
 				[]typing.TypeApp{},
 			))
+
+			_ = vneqs
+			_ = tnequ
+			_ = resultForms
 		}
 
 	}
