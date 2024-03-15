@@ -39,6 +39,7 @@ func equalitySort(fatherId uint64, state complextypes.State, c Communication, ne
 
 func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.State, c Communication, newAtomics basictypes.FormAndTermsList, currentNodeId int, originalNodeId int, metaToReintroduce []int) {
 
+	fmt.Printf("JEPASSICI ?")
 	eqs, neqs := equalitySort(fatherId, state, c, newAtomics, currentNodeId, originalNodeId, metaToReintroduce)
 	fmt.Printf("Equations : %d, Inequations : %d\n", eqs.Len(), neqs.Len())
 

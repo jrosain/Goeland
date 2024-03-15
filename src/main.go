@@ -64,7 +64,6 @@ var chAssistant chan bool = make(chan bool)
 
 func main() {
 	form, bound := presearchLoader()
-
 	//This block cannot be removed from the main function, as it breaks how the CPU profiler works
 	if global.GetCpuProfile() != "" {
 		file, err := os.Create(global.GetCpuProfile())
