@@ -13,7 +13,7 @@ import (
 var ZeqEnabled = false
 
 func EnableZeq() {
-	ZeqEnabled = true
+	ds.doCorrectApplyRules = ds.zeqApplyRule
 }
 
 func equalitySort(fatherId uint64, state complextypes.State, c Communication, newAtomics basictypes.FormAndTermsList, currentNodeId int, originalNodeId int, metaToReintroduce []int) (eqs, neqs basictypes.FormAndTermsList) {

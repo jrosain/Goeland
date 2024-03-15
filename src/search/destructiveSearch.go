@@ -73,15 +73,12 @@ type destructiveSearch struct {
 	doCorrectApplyRules func(uint64, complextypes.State, Communication, basictypes.FormAndTermsList, int, int, []int)
 }
 
-func NewDestructiveSearch() SearchAlgorithm {
-	ds := &destructiveSearch{}
+var ds = &destructiveSearch{}
 
+func NewDestructiveSearch() SearchAlgorithm {
+	// ds := &destructiveSearch{}
 	// CA NE MARCHE PAS ??? GOROUTINE ??
-	if ZeqEnabled {
-		ds.doCorrectApplyRules = ds.zeqApplyRule
-	} else {
-		ds.doCorrectApplyRules = ds.applyRules
-	}
+	ds.doCorrectApplyRules = ds.applyRules
 	return ds
 }
 
