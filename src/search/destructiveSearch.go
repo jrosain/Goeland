@@ -65,7 +65,11 @@ type destructiveSearch struct {
 
 func NewDestructiveSearch() SearchAlgorithm {
 	ds := &destructiveSearch{}
-	ds.doCorrectApplyRules = ds.applyRules
+	if zeqEnable { // [TEMP] need to be place in zeq option file and ahve a better way to do this
+		ds.doCorrectApplyRules = ds.zeqApplyRule
+	} else {
+		ds.doCorrectApplyRules = ds.applyRules
+	}
 	return ds
 }
 
