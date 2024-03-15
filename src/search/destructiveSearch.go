@@ -76,9 +76,8 @@ type destructiveSearch struct {
 func NewDestructiveSearch() SearchAlgorithm {
 	ds := &destructiveSearch{}
 
-	fmt.Printf("Z : %d\n", global.GetZeq())
+	// CA NE MARCHE PAS ??? GOROUTINE ??
 	if zeqEnabled {
-		fmt.Printf("ICI MATT\n")
 		ds.doCorrectApplyRules = ds.zeqApplyRule
 	} else {
 		ds.doCorrectApplyRules = ds.applyRules
