@@ -50,7 +50,6 @@ import (
 	"github.com/GoelandProver/Goeland/plugins/gs3"
 	"github.com/GoelandProver/Goeland/plugins/lambdapi"
 	"github.com/GoelandProver/Goeland/plugins/sateq"
-	"github.com/GoelandProver/Goeland/plugins/zeq"
 
 	"github.com/GoelandProver/Goeland/search"
 	basictypes "github.com/GoelandProver/Goeland/types/basic-types"
@@ -302,7 +301,7 @@ func buildOptions() {
 		false,
 		"Enables zenon equality rules",
 		func(bool) {
-			zeq.Enable()
+			search.EnableZeq()
 		},
 		func(bool) {})
 }
