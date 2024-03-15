@@ -59,13 +59,26 @@ const (
 	OPENED
 )
 
+type ApplyRulesArgs struct {
+	FatherId          uint64
+	State             complextypes.State
+	C                 Communication
+	NewAtomics        basictypes.FormAndTermsList
+	CurrentNodeId     int
+	OriginalNodeId    int
+	MetaToReintroduce []int
+}
+
 type destructiveSearch struct {
 	doCorrectApplyRules func(uint64, complextypes.State, Communication, basictypes.FormAndTermsList, int, int, []int)
 }
 
 func NewDestructiveSearch() SearchAlgorithm {
 	ds := &destructiveSearch{}
-	if zeqEnable { // [TEMP] need to be place in zeq option file and ahve a better way to do this
+
+	fmt.Printf("Z : %d\n", global.GetZeq())
+	if global.GetZeq() {
+		fmt.Printf("ICI MATT\n")
 		ds.doCorrectApplyRules = ds.zeqApplyRule
 	} else {
 		ds.doCorrectApplyRules = ds.applyRules
@@ -301,6 +314,7 @@ func (ds *destructiveSearch) ProofSearch(father_id uint64, st complextypes.State
 		global.PrintDebug("PS", fmt.Sprintf("LF before applyRules : %v", atomics_for_dmt.ToString()))
 
 		// DoCorrectApplyRules is defined by default as ApplyRules, or to ApplyRulesAssisted if assisted flag is given.
+
 		go ds.doCorrectApplyRules(father_id, st, cha, atomics_for_dmt, node_id, original_node_id, meta_to_reintroduce)
 	}
 }
