@@ -50,6 +50,8 @@ import (
 	"github.com/GoelandProver/Goeland/plugins/gs3"
 	"github.com/GoelandProver/Goeland/plugins/lambdapi"
 	"github.com/GoelandProver/Goeland/plugins/sateq"
+	"github.com/GoelandProver/Goeland/plugins/zeq"
+
 	"github.com/GoelandProver/Goeland/search"
 	basictypes "github.com/GoelandProver/Goeland/types/basic-types"
 	exchanges "github.com/GoelandProver/Goeland/visualization_exchanges"
@@ -293,6 +295,14 @@ func buildOptions() {
 
 			maxInt := math.MaxInt
 			global.SetLimit(maxInt)
+		},
+		func(bool) {})
+	(&option[bool]{}).init(
+		"zeq",
+		false,
+		"Enables zenon equality rules",
+		func(bool) {
+			zeq.Enable()
 		},
 		func(bool) {})
 }

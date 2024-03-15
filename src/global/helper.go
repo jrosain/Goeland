@@ -49,6 +49,7 @@ import (
 var ocoq = false
 var olambdapi = false
 var Assisted = false
+var Zeq = false
 var destructive = true
 var nb_gor = 0
 var mutex sync.Mutex
@@ -124,6 +125,10 @@ func GetWriteLogs() bool {
 
 func GetAssisted() bool {
 	return Assisted
+}
+
+func GetZeq() bool {
+	return Zeq
 }
 
 func IsDestructive() bool {
@@ -253,6 +258,10 @@ func SetWriteLogs(b bool) {
 
 func SetAssisted(b bool) {
 	Assisted = b
+}
+
+func SetZeq(b bool) {
+	Zeq = b
 }
 
 func SetStart(t time.Time) {
