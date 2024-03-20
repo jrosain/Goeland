@@ -103,7 +103,7 @@ func (e Ex) CleanFormula() Form {
 }
 
 func (e Ex) EvaluateFormula() Form {
-	return evaluateQuantifiedFormula(&e)
+	return MakerEx(e.var_list, evaluateQuantifiedFormula(&e))
 }
 
 func (e Ex) GetSubTerms() TermList {
@@ -165,7 +165,7 @@ func (a All) CleanFormula() Form {
 }
 
 func (a All) EvaluateFormula() Form {
-	return evaluateQuantifiedFormula(&a)
+	return MakerAll(a.var_list, evaluateQuantifiedFormula(&a))
 }
 
 func (a All) GetSubTerms() TermList {

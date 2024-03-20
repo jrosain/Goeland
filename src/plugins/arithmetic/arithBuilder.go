@@ -190,7 +190,7 @@ func tryConstraintNetwork(network Network, termMap map[string]basictypes.Term) (
 func buildFile(network Network, networkFile string, terms map[string]basictypes.Term) {
 	f, err := os.Create(networkFile)
 	if err != nil {
-		global.PrintFatal("ARI", err.Error())
+		global.PrintPanic("ARI", err.Error())
 	}
 	defer f.Close()
 
@@ -212,7 +212,7 @@ func buildFile(network Network, networkFile string, terms map[string]basictypes.
 
 	_, err = f.WriteString(str)
 	if err != nil {
-		global.PrintFatal("ARI", err.Error())
+		global.PrintPanic("ARI", err.Error())
 	}
 }
 
@@ -222,20 +222,20 @@ func runHiGHS(networkFile, solutionFile string) {
 	_, err := cmd.Output()
 
 	if err != nil {
-		global.PrintFatal("HiGHS", err.Error())
+		global.PrintPanic("HiGHS", err.Error())
 	}
 
 	automaticLogFile := "HiGHS.log"
 	err = os.Remove(automaticLogFile)
 	if err != nil {
-		global.PrintFatal("HiGHS", err.Error())
+		global.PrintPanic("HiGHS", err.Error())
 	}
 }
 
 func gatherData(solutionFile string, termMap map[string]basictypes.Term) (example CounterExample, success bool) {
 	readFile, err := os.Open(solutionFile)
 	if err != nil {
-		global.PrintFatal("ARI", err.Error())
+		global.PrintPanic("ARI", err.Error())
 	}
 	defer readFile.Close()
 
@@ -279,7 +279,7 @@ func returnVarAmount(line string) int {
 
 	varAmount, err := strconv.Atoi(words[len(words)-1])
 	if err != nil {
-		global.PrintFatal("ARI", err.Error())
+		global.PrintPanic("ARI", err.Error())
 	}
 
 	return varAmount
@@ -290,7 +290,7 @@ func returnVariableValue(line string, termMap map[string]basictypes.Term) (varia
 	variable = termMap[words[0]]
 	val, err := strconv.ParseFloat(words[1], 64)
 	if err != nil {
-		global.PrintFatal("ARI", err.Error())
+		global.PrintPanic("ARI", err.Error())
 	}
 	return variable, Real(val)
 }
