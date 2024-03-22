@@ -53,7 +53,6 @@ func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.St
 		ds.manageDeltaRules(fatherId, state, c, originalNodeId)
 
 	case (len(eqs) > 0) && (len(neqs) > 0):
-		fmt.Printf("Apply Zed Rules \n")
 		ds.applyZeqRules(fatherId, state, c, originalNodeId, eqs, neqs)
 
 	case len(state.GetBeta()) > 0:

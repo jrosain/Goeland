@@ -1,1 +1,1 @@
-fof(geo282plus1eq0, conjecture, (((a = b & b = c) => (a = c) ))).
+fof(matt, conjecture, ~((a = b) & (b != a))).
