@@ -38,10 +38,8 @@ func equalitySort(fatherId uint64, state complextypes.State, c Communication, ne
 }
 
 func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.State, c Communication, newAtomics basictypes.FormAndTermsList, currentNodeId int, originalNodeId int, metaToReintroduce []int) {
-
-	fmt.Printf("JEPASSICI ?")
 	eqs, neqs := equalitySort(fatherId, state, c, newAtomics, currentNodeId, originalNodeId, metaToReintroduce)
-	fmt.Printf("Equations : %d, Inequations : %d\n", eqs.Len(), neqs.Len())
+	global.PrintDebug("PS", fmt.Sprintf("Equations : %d, Inequations : %d", eqs.Len(), neqs.Len()))
 
 	global.PrintDebug("AR", "ApplyRule")
 	switch {
@@ -55,7 +53,8 @@ func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.St
 		ds.manageDeltaRules(fatherId, state, c, originalNodeId)
 
 	case (len(eqs) > 0) && (len(neqs) > 0):
-		fmt.Printf("TRANSSYM\n")
+		fmt.Printf("Apply Zed Rules \n")
+		ds.applyZeqRules(fatherId, state, c, originalNodeId, eqs, neqs)
 
 	case len(state.GetBeta()) > 0:
 		ds.manageBetaRules(fatherId, state, c, currentNodeId, originalNodeId, metaToReintroduce)
@@ -81,30 +80,32 @@ func (ds *destructiveSearch) applyZeqRules(fatherId uint64, state complextypes.S
 	hdfNeq := neqs[0]
 	global.PrintDebug("PS", fmt.Sprintf("Rule applied on : %s %s", hdfEq.ToString(), hdfNeq.ToString()))
 
-	resultForms := basictypes.MakeEmptyFormAndTermsList()
+	s, t := hdfEq.GetForm().(basictypes.Pred).GetArgs().Get(0), hdfEq.GetForm().(basictypes.Pred).GetArgs().Get(1)
+	u, v := hdfNeq.GetForm().(basictypes.Not).GetForm().(basictypes.Pred).GetArgs().Get(0), hdfNeq.GetForm().(basictypes.Not).GetForm().(basictypes.Pred).GetArgs().Get(1)
 
-	if typedEq, ok := hdfEq.GetForm().(basictypes.Pred); ok {
-		if typedNeq, ok := hdfNeq.GetForm().(basictypes.Pred); ok {
-			s, t := typedEq.GetArgs().Get(0), typedEq.GetArgs().Get(1)
-			u, v := typedNeq.GetArgs().Get(0), typedNeq.GetArgs().Get(1)
+	vneqs := basictypes.RefuteForm(basictypes.MakerPred(
+		basictypes.Id_eq,
+		basictypes.NewTermList(v, s),
+		[]typing.TypeApp{},
+	))
 
-			vneqs := basictypes.RefuteForm(basictypes.MakerPred(
-				basictypes.Id_eq,
-				basictypes.NewTermList(v, s),
-				[]typing.TypeApp{},
-			))
+	tnequ := basictypes.RefuteForm(basictypes.MakerPred(
+		basictypes.Id_eq,
+		basictypes.NewTermList(t, u),
+		[]typing.TypeApp{},
+	))
 
-			tnequ := basictypes.RefuteForm(basictypes.MakerPred(
-				basictypes.Id_eq,
-				basictypes.NewTermList(t, u),
-				[]typing.TypeApp{},
-			))
+	global.PrintDebug("PS", fmt.Sprintf("Found litterals : s = %s t = %s, u = %s, v = %s", s.ToString(), t.ToString(), u.ToString(), v.ToString()))
+	atomicList := state.GetAtomic()
+	fat := basictypes.MakeFormAndTerm(vneqs, atomicList[0].GetTerms())
+	atomicList = atomicList.AppendIfNotContains(fat)
+	fat = basictypes.MakeFormAndTerm(tnequ, atomicList[0].GetTerms())
+	atomicList = atomicList.AppendIfNotContains(fat)
 
-			_ = vneqs
-			_ = tnequ
-			_ = resultForms
-		}
+	global.PrintDebug("PS", fmt.Sprintf("New atomic formulae : %s", atomicList.ToString()))
+	state.SetAtomic(atomicList)
 
-	}
+	childId := global.IncrCptNode()
 
+	ds.ProofSearch(fatherId, state, c, complextypes.MakeEmptySubstAndForm(), childId, originalNodeId, []int{})
 }
