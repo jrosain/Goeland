@@ -82,6 +82,8 @@ func (ds *destructiveSearch) applyZeqRules(fatherId uint64, state complextypes.S
 	global.PrintDebug("PS", "Zeq rule")
 	hdfEq := pair.GetFst()
 	hdfNeq := pair.GetSnd()
+	hdfEq := state.GetEqs()[pair.Fst]
+	hdfNeq := state.GetNeqs()[pair.Snd]
 	global.PrintDebug("PS", fmt.Sprintf("Rule applied on : %s %s", hdfEq.ToString(), hdfNeq.ToString()))
 
 	s, t := hdfEq.(basictypes.Pred).GetArgs().Get(0), hdfEq.(basictypes.Pred).GetArgs().Get(1)
