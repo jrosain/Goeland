@@ -40,8 +40,8 @@ func equalitySort(fatherId uint64, state complextypes.State, c Communication, ne
 func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.State, c Communication, newAtomics basictypes.FormAndTermsList, currentNodeId int, originalNodeId int, metaToReintroduce []int) {
 
 	eqs, neqs := equalitySort(fatherId, state, c, newAtomics, currentNodeId, originalNodeId, metaToReintroduce)
-	state.SetEqs(eqs)
-	state.SetNeqs(neqs)
+	state.SetEqs(eqs.ExtractForms())
+	state.SetNeqs(neqs.ExtractForms())
 	pair := CanApplyTs(state)
 
 	global.PrintDebug("PS", fmt.Sprintf("Equations : %d, Inequations : %d", eqs.Len(), neqs.Len()))
@@ -58,7 +58,7 @@ func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.St
 		ds.manageDeltaRules(fatherId, state, c, originalNodeId)
 
 	case !isNilPair(pair):
-		ds.applyZeqRules(fatherId, state, c, originalNodeId, pair)
+		ds.applyZeqRules(fatherId, state, c, originalNodeId, currentNodeId, metaToReintroduce, pair)
 
 	case len(state.GetBeta()) > 0:
 		ds.manageBetaRules(fatherId, state, c, currentNodeId, originalNodeId, metaToReintroduce)
@@ -78,14 +78,16 @@ func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.St
 	}
 }
 
-func (ds *destructiveSearch) applyZeqRules(fatherId uint64, state complextypes.State, c Communication, originalNodeId int, pair global.Pair[int, int]) {
+func (ds *destructiveSearch) applyZeqRules(fatherId uint64, state complextypes.State, c Communication, originalNodeId int, currentNodeId int, metaToReintroduce []int, pair global.BasicPaired[basictypes.Form, basictypes.Form]) {
 	global.PrintDebug("PS", "Zeq rule")
-	hdfEq := state.GetEqs()[0]
-	hdfNeq := state.GetNeqs()[0]
+	hdfEq := pair.GetFst()
+	hdfNeq := pair.GetSnd()
 	global.PrintDebug("PS", fmt.Sprintf("Rule applied on : %s %s", hdfEq.ToString(), hdfNeq.ToString()))
 
-	s, t := hdfEq.GetForm().(basictypes.Pred).GetArgs().Get(0), hdfEq.GetForm().(basictypes.Pred).GetArgs().Get(1)
-	u, v := hdfNeq.GetForm().(basictypes.Not).GetForm().(basictypes.Pred).GetArgs().Get(0), hdfNeq.GetForm().(basictypes.Not).GetForm().(basictypes.Pred).GetArgs().Get(1)
+	s, t := hdfEq.(basictypes.Pred).GetArgs().Get(0), hdfEq.(basictypes.Pred).GetArgs().Get(1)
+	u, v := hdfNeq.(basictypes.Not).GetForm().(basictypes.Pred).GetArgs().Get(0), hdfNeq.(basictypes.Not).GetForm().(basictypes.Pred).GetArgs().Get(1)
+
+	global.PrintDebug("PS", fmt.Sprintf("Found litterals : s = %s t = %s, u = %s, v = %s", s.ToString(), t.ToString(), u.ToString(), v.ToString()))
 
 	vneqs := basictypes.RefuteForm(basictypes.MakerPred(
 		basictypes.Id_eq,
@@ -99,42 +101,65 @@ func (ds *destructiveSearch) applyZeqRules(fatherId uint64, state complextypes.S
 		[]typing.TypeApp{},
 	))
 
-	global.PrintDebug("PS", fmt.Sprintf("Found litterals : s = %s t = %s, u = %s, v = %s", s.ToString(), t.ToString(), u.ToString(), v.ToString()))
-	atomicList := state.GetAtomic()
-	fat := basictypes.MakeFormAndTerm(vneqs, atomicList[0].GetTerms())
-	atomicList = atomicList.AppendIfNotContains(fat)
-	fat = basictypes.MakeFormAndTerm(tnequ, atomicList[0].GetTerms())
-	atomicList = atomicList.AppendIfNotContains(fat)
+	global.PrintDebug("PS", fmt.Sprintf("Generated formulas : %s, %s", vneqs.ToString(), tnequ.ToString()))
 
-	global.PrintDebug("PS", fmt.Sprintf("New atomic formulae : %s", atomicList.ToString()))
-	state.SetAtomic(atomicList)
+	state.AddToAlreadyAppliedZeq(pair)
 
-	childId := global.IncrCptNode()
+	var formTs [2]basictypes.Form
+	formTs[0] = vneqs
+	formTs[1] = tnequ
 
-	ds.ProofSearch(fatherId, state, c, complextypes.MakeEmptySubstAndForm(), childId, originalNodeId, []int{})
+	childIds := []int{}
+	var channels []Communication
+
+	for _, elem := range formTs {
+		i := global.IncrCptNode()
+
+		otherState := state.Copy()
+		otherFl := basictypes.MakeSingleElementFormAndTermList(basictypes.MakeFormAndTerm(elem, basictypes.NewTermList()))
+
+		otherState.SetLF(otherFl)
+		childIds = append(childIds, i)
+
+		if global.IsDestructive() {
+			channelChild := Communication{make(chan bool), make(chan Result)}
+			channels = append(channels, channelChild)
+			go ds.ProofSearch(global.GetGID(), otherState, channelChild, complextypes.MakeEmptySubstAndForm(), i, i, []int{})
+		} else {
+			go ds.ProofSearch(global.GetGID(), otherState, c, complextypes.MakeEmptySubstAndForm(), i, i, []int{})
+		}
+
+		global.IncrGoRoutine(1)
+		global.PrintDebug("PS", fmt.Sprintf("GO %v !", i))
+	}
+	ds.DoEndApplyZeq(fatherId, state, c, channels, currentNodeId, originalNodeId, childIds, metaToReintroduce)
+	// ds.ProofSearch(fatherId, state, c, complextypes.MakeEmptySubstAndForm(), childId, originalNodeId, []int{})
+}
+func (ds *destructiveSearch) DoEndApplyZeq(fatherId uint64, state complextypes.State, c Communication, channels []Communication, currentNodeId int, originalNodeId int, childIds []int, metaToReintroduce []int) {
+	ds.waitChildren(MakeWcdArgs(fatherId, state, c, channels, []complextypes.SubstAndForm{}, complextypes.MakeEmptySubstAndForm(), []complextypes.SubstAndForm{}, []complextypes.IntSubstAndFormAndTerms{}, currentNodeId, originalNodeId, false, childIds, metaToReintroduce))
 }
 
-func CanApplyTs(state complextypes.State) global.Pair[int, int] {
-	for i := range state.GetEqs() {
-		for j := range state.GetNeqs() {
-			pair := global.MakePair[int, int](i, j)
+func CanApplyTs(state complextypes.State) global.BasicPaired[basictypes.Form, basictypes.Form] {
+	for _, f1 := range state.GetEqs().Slice() {
+		for _, f2 := range state.GetNeqs().Slice() {
+			pair := global.NewBasicPair[basictypes.Form, basictypes.Form](f1, f2)
 			if !isAlreadyApplied(state, pair) {
 				return pair
 			}
 		}
 	}
-	return global.MakePair[int, int](-1, -1)
+	return global.NewBasicPair[basictypes.Form, basictypes.Form](nil, nil)
 }
 
-func isAlreadyApplied(state complextypes.State, pair global.Pair[int, int]) bool {
-	for _, each := range state.GetAlreadyAppliedZeq() {
-		if each.Fst == pair.Fst && each.Snd == pair.Snd {
+func isAlreadyApplied(state complextypes.State, pair global.BasicPaired[basictypes.Form, basictypes.Form]) bool {
+	for _, each := range state.GetAlreadyAppliedZeq().Slice() {
+		if each.GetFst().Equals(pair.GetFst()) && each.GetSnd().Equals(pair.GetSnd()) {
 			return true
 		}
 	}
 	return false
 }
 
-func isNilPair(pair global.Pair[int, int]) bool {
-	return pair.Fst == -1 && pair.Snd == -1
+func isNilPair(pair global.BasicPaired[basictypes.Form, basictypes.Form]) bool {
+	return pair.GetFst() == nil && pair.GetSnd() == nil
 }

@@ -66,8 +66,8 @@ type State struct {
 	forbidden                             []treetypes.Substitutions
 	unifier                               Unifier
 	// [TEMP] For ZEQ
-	eqs, neqs         basictypes.FormAndTermsList
-	alreadyAppliedZeq []global.Pair[int, int]
+	eqs, neqs         *basictypes.FormList
+	alreadyAppliedZeq *global.List[global.BasicPaired[basictypes.Form, basictypes.Form]]
 	// autrement
 	//alreadyAppliedZeq global.List[*global.BasicPair[global.Integer, global.Integer]]
 }
@@ -139,16 +139,18 @@ func (s State) GetGlobalUnifier() Unifier {
 }
 
 // [ZEQ]
-func (s State) GetEqs() basictypes.FormAndTermsList {
+func (s State) GetEqs() *basictypes.FormList {
 	return s.eqs.Copy()
 }
-func (s State) GetNeqs() basictypes.FormAndTermsList {
+func (s State) GetNeqs() *basictypes.FormList {
 	return s.neqs.Copy()
 }
-func (s State) GetAlreadyAppliedZeq() []global.Pair[int, int] {
-	theCopy := make([]global.Pair[int, int], len(s.alreadyAppliedZeq))
-	theCopy = append(theCopy, s.alreadyAppliedZeq...)
-	return theCopy
+func (s State) GetAlreadyAppliedZeq() *global.List[global.BasicPaired[basictypes.Form, basictypes.Form]] {
+	return s.alreadyAppliedZeq.Copy()
+}
+
+func (s *State) AddToAlreadyAppliedZeq(pair global.BasicPaired[basictypes.Form, basictypes.Form]) {
+	s.alreadyAppliedZeq.AppendIfNotContains(pair)
 }
 
 /* Setters */
@@ -259,16 +261,14 @@ func (s *State) SetGlobalUnifier(u Unifier) {
 }
 
 // [ZEQ]
-func (s *State) SetEqs(eqs basictypes.FormAndTermsList) {
+func (s *State) SetEqs(eqs *basictypes.FormList) {
 	s.eqs = eqs.Copy()
 }
-func (s *State) SetNeqs(neqs basictypes.FormAndTermsList) {
+func (s *State) SetNeqs(neqs *basictypes.FormList) {
 	s.neqs = neqs.Copy()
 }
-func (s *State) SetAlreadyAppliedZeq(alreadyAppliedZeq []global.Pair[int, int]) {
-	theCopy := make([]global.Pair[int, int], len(alreadyAppliedZeq))
-	theCopy = append(theCopy, alreadyAppliedZeq...)
-	s.alreadyAppliedZeq = theCopy
+func (s *State) SetAlreadyAppliedZeq(alreadyAppliedZeq *global.List[global.BasicPaired[basictypes.Form, basictypes.Form]]) {
+	s.alreadyAppliedZeq = alreadyAppliedZeq
 }
 
 /* Maker */
@@ -303,9 +303,9 @@ func MakeState(limit int, tp, tn datastruct.DataStructure, f basictypes.Form) St
 		false,
 		[]treetypes.Substitutions{},
 		MakeUnifier(),
-		basictypes.MakeEmptyFormAndTermsList(),
-		basictypes.MakeEmptyFormAndTermsList(),
-		[]global.Pair[int, int]{}}
+		basictypes.NewFormList(),
+		basictypes.NewFormList(),
+		global.NewList[global.BasicPaired[basictypes.Form, basictypes.Form]]()}
 
 	// [TEMP] Before Zeq
 	//return State{n, basictypes.MakeEmptyFormAndTermsList(), basictypes.MakeEmptyFormAndTermsList(), basictypes.MakeEmptyFormAndTermsList(), basictypes.MakeEmptyFormAndTermsList(), basictypes.MakeEmptyFormAndTermsList(), basictypes.MakeEmptyFormAndTermsList(), []basictypes.MetaGen{}, basictypes.NewMetaList(), basictypes.NewMetaList(), MakeEmptySubstAndForm(), MakeEmptySubstAndForm(), []SubstAndForm{}, tp, tn, []proof.ProofStruct{}, current_proof, false, []treetypes.Substitutions{}, MakeUnifier()}
@@ -437,6 +437,9 @@ func (st State) Copy() State {
 	new_state.SetCurrentProof(proof.MakeEmptyProofStruct())
 	new_state.SetBTOnFormulas(st.GetBTOnFormulas())
 	new_state.SetForbiddenSubsts(st.GetForbiddenSubsts())
+
+	new_state.SetAlreadyAppliedZeq(st.GetAlreadyAppliedZeq())
+
 	return new_state
 }
 
