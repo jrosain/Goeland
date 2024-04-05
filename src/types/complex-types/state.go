@@ -65,6 +65,11 @@ type State struct {
 	bt_on_formulas                        bool
 	forbidden                             []treetypes.Substitutions
 	unifier                               Unifier
+	// [TEMP] For ZEQ
+	eqs, neqs         basictypes.FormAndTermsList
+	alreadyAppliedZeq []global.Pair[int, int]
+	// autrement
+	//alreadyAppliedZeq global.List[*global.BasicPair[global.Integer, global.Integer]]
 }
 
 /***********/
@@ -131,6 +136,19 @@ func (s State) GetForbiddenSubsts() []treetypes.Substitutions {
 }
 func (s State) GetGlobalUnifier() Unifier {
 	return s.unifier.Copy()
+}
+
+// [ZEQ]
+func (s State) GetEqs() basictypes.FormAndTermsList {
+	return s.eqs.Copy()
+}
+func (s State) GetNeqs() basictypes.FormAndTermsList {
+	return s.neqs.Copy()
+}
+func (s State) GetAlreadyAppliedZeq() []global.Pair[int, int] {
+	theCopy := make([]global.Pair[int, int], len(s.alreadyAppliedZeq))
+	theCopy = append(theCopy, s.alreadyAppliedZeq...)
+	return theCopy
 }
 
 /* Setters */
@@ -240,6 +258,19 @@ func (s *State) SetGlobalUnifier(u Unifier) {
 	s.unifier = u.Copy()
 }
 
+// [ZEQ]
+func (s *State) SetEqs(eqs basictypes.FormAndTermsList) {
+	s.eqs = eqs.Copy()
+}
+func (s *State) SetNeqs(neqs basictypes.FormAndTermsList) {
+	s.neqs = neqs.Copy()
+}
+func (s *State) SetAlreadyAppliedZeq(alreadyAppliedZeq []global.Pair[int, int]) {
+	theCopy := make([]global.Pair[int, int], len(alreadyAppliedZeq))
+	theCopy = append(theCopy, alreadyAppliedZeq...)
+	s.alreadyAppliedZeq = theCopy
+}
+
 /* Maker */
 func MakeState(limit int, tp, tn datastruct.DataStructure, f basictypes.Form) State {
 	n := 0
@@ -251,7 +282,33 @@ func MakeState(limit int, tp, tn datastruct.DataStructure, f basictypes.Form) St
 	current_proof.SetRuleProof("Initial formula")
 	current_proof.SetFormulaProof(basictypes.MakeFormAndTerm(f.Copy(), basictypes.NewTermList()))
 
-	return State{n, basictypes.MakeEmptyFormAndTermsList(), basictypes.MakeEmptyFormAndTermsList(), basictypes.MakeEmptyFormAndTermsList(), basictypes.MakeEmptyFormAndTermsList(), basictypes.MakeEmptyFormAndTermsList(), basictypes.MakeEmptyFormAndTermsList(), []basictypes.MetaGen{}, basictypes.NewMetaList(), basictypes.NewMetaList(), MakeEmptySubstAndForm(), MakeEmptySubstAndForm(), []SubstAndForm{}, tp, tn, []proof.ProofStruct{}, current_proof, false, []treetypes.Substitutions{}, MakeUnifier()}
+	return State{
+		n,
+		basictypes.MakeEmptyFormAndTermsList(),
+		basictypes.MakeEmptyFormAndTermsList(),
+		basictypes.MakeEmptyFormAndTermsList(),
+		basictypes.MakeEmptyFormAndTermsList(),
+		basictypes.MakeEmptyFormAndTermsList(),
+		basictypes.MakeEmptyFormAndTermsList(),
+		[]basictypes.MetaGen{},
+		basictypes.NewMetaList(),
+		basictypes.NewMetaList(),
+		MakeEmptySubstAndForm(),
+		MakeEmptySubstAndForm(),
+		[]SubstAndForm{},
+		tp,
+		tn,
+		[]proof.ProofStruct{},
+		current_proof,
+		false,
+		[]treetypes.Substitutions{},
+		MakeUnifier(),
+		basictypes.MakeEmptyFormAndTermsList(),
+		basictypes.MakeEmptyFormAndTermsList(),
+		[]global.Pair[int, int]{}}
+
+	// [TEMP] Before Zeq
+	//return State{n, basictypes.MakeEmptyFormAndTermsList(), basictypes.MakeEmptyFormAndTermsList(), basictypes.MakeEmptyFormAndTermsList(), basictypes.MakeEmptyFormAndTermsList(), basictypes.MakeEmptyFormAndTermsList(), basictypes.MakeEmptyFormAndTermsList(), []basictypes.MetaGen{}, basictypes.NewMetaList(), basictypes.NewMetaList(), MakeEmptySubstAndForm(), MakeEmptySubstAndForm(), []SubstAndForm{}, tp, tn, []proof.ProofStruct{}, current_proof, false, []treetypes.Substitutions{}, MakeUnifier()}
 }
 
 /* Print a state */

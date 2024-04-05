@@ -38,7 +38,12 @@ func equalitySort(fatherId uint64, state complextypes.State, c Communication, ne
 }
 
 func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.State, c Communication, newAtomics basictypes.FormAndTermsList, currentNodeId int, originalNodeId int, metaToReintroduce []int) {
+
 	eqs, neqs := equalitySort(fatherId, state, c, newAtomics, currentNodeId, originalNodeId, metaToReintroduce)
+	state.SetEqs(eqs)
+	state.SetNeqs(neqs)
+	pair := CanApplyTs(state)
+
 	global.PrintDebug("PS", fmt.Sprintf("Equations : %d, Inequations : %d", eqs.Len(), neqs.Len()))
 
 	global.PrintDebug("AR", "ApplyRule")
@@ -52,8 +57,8 @@ func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.St
 	case len(state.GetDelta()) > 0:
 		ds.manageDeltaRules(fatherId, state, c, originalNodeId)
 
-	case (len(eqs) > 0) && (len(neqs) > 0):
-		ds.applyZeqRules(fatherId, state, c, originalNodeId, eqs, neqs)
+	case !isNilPair(pair):
+		ds.applyZeqRules(fatherId, state, c, originalNodeId, pair)
 
 	case len(state.GetBeta()) > 0:
 		ds.manageBetaRules(fatherId, state, c, currentNodeId, originalNodeId, metaToReintroduce)
@@ -73,10 +78,10 @@ func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.St
 	}
 }
 
-func (ds *destructiveSearch) applyZeqRules(fatherId uint64, state complextypes.State, c Communication, originalNodeId int, eqs, neqs basictypes.FormAndTermsList) {
+func (ds *destructiveSearch) applyZeqRules(fatherId uint64, state complextypes.State, c Communication, originalNodeId int, pair global.Pair[int, int]) {
 	global.PrintDebug("PS", "Zeq rule")
-	hdfEq := eqs[0]
-	hdfNeq := neqs[0]
+	hdfEq := state.GetEqs()[0]
+	hdfNeq := state.GetNeqs()[0]
 	global.PrintDebug("PS", fmt.Sprintf("Rule applied on : %s %s", hdfEq.ToString(), hdfNeq.ToString()))
 
 	s, t := hdfEq.GetForm().(basictypes.Pred).GetArgs().Get(0), hdfEq.GetForm().(basictypes.Pred).GetArgs().Get(1)
@@ -107,4 +112,29 @@ func (ds *destructiveSearch) applyZeqRules(fatherId uint64, state complextypes.S
 	childId := global.IncrCptNode()
 
 	ds.ProofSearch(fatherId, state, c, complextypes.MakeEmptySubstAndForm(), childId, originalNodeId, []int{})
+}
+
+func CanApplyTs(state complextypes.State) global.Pair[int, int] {
+	for i := range state.GetEqs() {
+		for j := range state.GetNeqs() {
+			pair := global.MakePair[int, int](i, j)
+			if !isAlreadyApplied(state, pair) {
+				return pair
+			}
+		}
+	}
+	return global.MakePair[int, int](-1, -1)
+}
+
+func isAlreadyApplied(state complextypes.State, pair global.Pair[int, int]) bool {
+	for _, each := range state.GetAlreadyAppliedZeq() {
+		if each.Fst == pair.Fst && each.Snd == pair.Snd {
+			return true
+		}
+	}
+	return false
+}
+
+func isNilPair(pair global.Pair[int, int]) bool {
+	return pair.Fst == -1 && pair.Snd == -1
 }

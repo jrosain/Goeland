@@ -1,1 +1,1 @@
-fof(matt, conjecture, ~((a = b) & (b != a))).
+fof(matt, conjecture, ~((a = b) & (b = c) & (c = d) & (d != a))).
