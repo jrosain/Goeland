@@ -239,7 +239,9 @@ func getPosAndNegPreds(st complextypes.State) *global.List[global.BasicPaired[ba
 			for j := 1; j < atomics.Len(); j++ {
 				if not, ok := atomics.Get(j).(basictypes.Not); ok {
 					if typedSecond, ok := not.GetForm().(basictypes.Pred); ok {
-						result.AppendIfNotContains(global.NewBasicPair(typedFirst, typedSecond))
+						if typedFirst.GetID().Equals(typedSecond.GetID()) {
+							result.AppendIfNotContains(global.NewBasicPair(typedFirst, typedSecond))
+						}
 					}
 				}
 			}
