@@ -59,7 +59,7 @@ func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.St
 		ds.manageDeltaRules(fatherId, state, c, originalNodeId)
 
 	case !isNilPair(predPair):
-		ds.applyPredRules(fatherId, state, c, originalNodeId, currentNodeId, metaToReintroduce, eqPair)
+		ds.applyPredRules(fatherId, state, c, originalNodeId, currentNodeId, metaToReintroduce, predPair)
 
 	case !isNilPair(eqPair):
 		ds.applyTsRules(fatherId, state, c, originalNodeId, currentNodeId, metaToReintroduce, eqPair)
