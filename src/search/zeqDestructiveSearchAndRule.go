@@ -83,7 +83,7 @@ func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.St
 }
 
 func (ds *destructiveSearch) applyTsRules(fatherId uint64, state complextypes.State, c Communication, originalNodeId int, currentNodeId int, metaToReintroduce []int, pair global.BasicPaired[basictypes.Form, basictypes.Form]) {
-	global.PrintDebug("PS", "Zeq rule")
+	global.PrintDebug("PS", "Zeq rule: TransSym")
 	hdfEq := pair.GetFst()
 	hdfNeq := pair.GetSnd()
 	global.PrintDebug("PS", fmt.Sprintf("Rule applied on : %s %s", hdfEq.ToString(), hdfNeq.ToString()))
@@ -141,40 +141,32 @@ func (ds *destructiveSearch) applyTsRules(fatherId uint64, state complextypes.St
 }
 
 func (ds *destructiveSearch) applyPredRules(fatherId uint64, state complextypes.State, c Communication, originalNodeId int, currentNodeId int, metaToReintroduce []int, pair global.BasicPaired[basictypes.Form, basictypes.Form]) {
-	global.PrintDebug("PS", "Zeq rule")
-	hdfEq := pair.GetFst()
-	hdfNeq := pair.GetSnd()
-	global.PrintDebug("PS", fmt.Sprintf("Rule applied on : %s %s", hdfEq.ToString(), hdfNeq.ToString()))
+	global.PrintDebug("PS", "Zeq rule: Pred")
+	hdfPred := pair.GetFst()
+	hdfNegpred := pair.GetSnd()
+	global.PrintDebug("PS", fmt.Sprintf("Rule applied on : %s %s", hdfPred.ToString(), hdfNegpred.ToString()))
 
-	s, t := hdfEq.(basictypes.Pred).GetArgs().Get(0), hdfEq.(basictypes.Pred).GetArgs().Get(1)
-	u, v := hdfNeq.(basictypes.Not).GetForm().(basictypes.Pred).GetArgs().Get(0), hdfNeq.(basictypes.Not).GetForm().(basictypes.Pred).GetArgs().Get(1)
+	predArgs := hdfPred.(basictypes.Pred).GetArgs()
+	negpredArgs := hdfNegpred.(basictypes.Pred).GetArgs()
 
-	global.PrintDebug("PS", fmt.Sprintf("Found litterals : s = %s t = %s, u = %s, v = %s", s.ToString(), t.ToString(), u.ToString(), v.ToString()))
+	ruleResultList := global.NewList[basictypes.Not]()
+	for i := range predArgs.Slice() {
+		ruleResultList.AppendIfNotContains(
+			basictypes.MakerNot(
+				basictypes.MakerPred(
+					basictypes.Id_eq,
+					basictypes.NewTermList(predArgs.Get(i), negpredArgs.Get(i)), []typing.TypeApp{})))
 
-	vneqs := basictypes.RefuteForm(basictypes.MakerPred(
-		basictypes.Id_eq,
-		basictypes.NewTermList(v, s),
-		[]typing.TypeApp{},
-	))
+	}
 
-	tnequ := basictypes.RefuteForm(basictypes.MakerPred(
-		basictypes.Id_eq,
-		basictypes.NewTermList(t, u),
-		[]typing.TypeApp{},
-	))
-
-	global.PrintDebug("PS", fmt.Sprintf("Generated formulas : %s, %s", vneqs.ToString(), tnequ.ToString()))
+	global.PrintDebug("PS", fmt.Sprintf("Generated formulas : %s", ruleResultList.ToString()))
 
 	state.AddToAlreadyAppliedZeq(pair)
-
-	var formTs [2]basictypes.Form
-	formTs[0] = vneqs
-	formTs[1] = tnequ
 
 	childIds := []int{}
 	var channels []Communication
 
-	for _, elem := range formTs {
+	for _, elem := range ruleResultList.Slice() {
 		i := global.IncrCptNode()
 
 		otherState := state.Copy()
