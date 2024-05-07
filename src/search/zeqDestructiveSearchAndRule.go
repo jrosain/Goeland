@@ -151,6 +151,16 @@ func CanApplyTs(state complextypes.State) global.BasicPaired[basictypes.Form, ba
 	return global.NewBasicPair[basictypes.Form, basictypes.Form](nil, nil)
 }
 
+func CanApplyPred(state complextypes.State, predCandidateList []global.BasicPaired[basictypes.Pred, basictypes.Pred]) global.BasicPaired[basictypes.Form, basictypes.Form] {
+	for _, predPair := range predCandidateList {
+		pair := global.NewBasicPair[basictypes.Form, basictypes.Form](predPair.GetFst(), predPair.GetSnd())
+		if !isAlreadyApplied(state, pair) {
+			return pair
+		}
+	}
+	return global.NewBasicPair[basictypes.Form, basictypes.Form](nil, nil)
+}
+
 func isAlreadyApplied(state complextypes.State, pair global.BasicPaired[basictypes.Form, basictypes.Form]) bool {
 	for _, each := range state.GetAlreadyAppliedZeq().Slice() {
 		if each.GetFst().Equals(pair.GetFst()) && each.GetSnd().Equals(pair.GetSnd()) {
