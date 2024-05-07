@@ -58,11 +58,11 @@ func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.St
 	case len(state.GetDelta()) > 0:
 		ds.manageDeltaRules(fatherId, state, c, originalNodeId)
 
-	case !isNilPair(eqPair):
-		ds.applyZeqRules(fatherId, state, c, originalNodeId, currentNodeId, metaToReintroduce, eqPair)
-
 	case !isNilPair(predPair):
 		ds.applyPredRules(fatherId, state, c, originalNodeId, currentNodeId, metaToReintroduce, eqPair)
+
+	case !isNilPair(eqPair):
+		ds.applyTsRules(fatherId, state, c, originalNodeId, currentNodeId, metaToReintroduce, eqPair)
 
 	case len(state.GetBeta()) > 0:
 		ds.manageBetaRules(fatherId, state, c, currentNodeId, originalNodeId, metaToReintroduce)
@@ -82,7 +82,7 @@ func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.St
 	}
 }
 
-func (ds *destructiveSearch) applyZeqRules(fatherId uint64, state complextypes.State, c Communication, originalNodeId int, currentNodeId int, metaToReintroduce []int, pair global.BasicPaired[basictypes.Form, basictypes.Form]) {
+func (ds *destructiveSearch) applyTsRules(fatherId uint64, state complextypes.State, c Communication, originalNodeId int, currentNodeId int, metaToReintroduce []int, pair global.BasicPaired[basictypes.Form, basictypes.Form]) {
 	global.PrintDebug("PS", "Zeq rule")
 	hdfEq := pair.GetFst()
 	hdfNeq := pair.GetSnd()
@@ -214,8 +214,9 @@ func CanApplyTs(state complextypes.State) global.BasicPaired[basictypes.Form, ba
 	return global.NewBasicPair[basictypes.Form, basictypes.Form](nil, nil)
 }
 
-func CanApplyPred(state complextypes.State, predCandidateList []global.BasicPaired[basictypes.Pred, basictypes.Pred]) global.BasicPaired[basictypes.Form, basictypes.Form] {
-	for _, predPair := range predCandidateList {
+func CanApplyPred(state complextypes.State) global.BasicPaired[basictypes.Form, basictypes.Form] {
+	predCandidateList := getPosAndNegPreds(state)
+	for _, predPair := range predCandidateList.Slice() {
 		pair := global.NewBasicPair[basictypes.Form, basictypes.Form](predPair.GetFst(), predPair.GetSnd())
 		if !isAlreadyApplied(state, pair) {
 			return pair
