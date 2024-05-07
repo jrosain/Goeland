@@ -42,7 +42,8 @@ func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.St
 	eqs, neqs := equalitySort(fatherId, state, c, newAtomics, currentNodeId, originalNodeId, metaToReintroduce)
 	state.SetEqs(eqs.ExtractForms())
 	state.SetNeqs(neqs.ExtractForms())
-	pair := CanApplyTs(state)
+	eqPair := CanApplyTs(state)
+	predPair := CanApplyPred(state)
 
 	global.PrintDebug("PS", fmt.Sprintf("Equations : %d, Inequations : %d", eqs.Len(), neqs.Len()))
 
@@ -57,8 +58,11 @@ func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.St
 	case len(state.GetDelta()) > 0:
 		ds.manageDeltaRules(fatherId, state, c, originalNodeId)
 
-	case !isNilPair(pair):
-		ds.applyZeqRules(fatherId, state, c, originalNodeId, currentNodeId, metaToReintroduce, pair)
+	case !isNilPair(eqPair):
+		ds.applyZeqRules(fatherId, state, c, originalNodeId, currentNodeId, metaToReintroduce, eqPair)
+
+	case !isNilPair(predPair):
+		ds.applyPredRules(fatherId, state, c, originalNodeId, currentNodeId, metaToReintroduce, eqPair)
 
 	case len(state.GetBeta()) > 0:
 		ds.manageBetaRules(fatherId, state, c, currentNodeId, originalNodeId, metaToReintroduce)
@@ -135,6 +139,65 @@ func (ds *destructiveSearch) applyZeqRules(fatherId uint64, state complextypes.S
 	ds.DoEndApplyZeq(fatherId, state, c, channels, currentNodeId, originalNodeId, childIds, metaToReintroduce)
 	// ds.ProofSearch(fatherId, state, c, complextypes.MakeEmptySubstAndForm(), childId, originalNodeId, []int{})
 }
+
+func (ds *destructiveSearch) applyPredRules(fatherId uint64, state complextypes.State, c Communication, originalNodeId int, currentNodeId int, metaToReintroduce []int, pair global.BasicPaired[basictypes.Form, basictypes.Form]) {
+	global.PrintDebug("PS", "Zeq rule")
+	hdfEq := pair.GetFst()
+	hdfNeq := pair.GetSnd()
+	global.PrintDebug("PS", fmt.Sprintf("Rule applied on : %s %s", hdfEq.ToString(), hdfNeq.ToString()))
+
+	s, t := hdfEq.(basictypes.Pred).GetArgs().Get(0), hdfEq.(basictypes.Pred).GetArgs().Get(1)
+	u, v := hdfNeq.(basictypes.Not).GetForm().(basictypes.Pred).GetArgs().Get(0), hdfNeq.(basictypes.Not).GetForm().(basictypes.Pred).GetArgs().Get(1)
+
+	global.PrintDebug("PS", fmt.Sprintf("Found litterals : s = %s t = %s, u = %s, v = %s", s.ToString(), t.ToString(), u.ToString(), v.ToString()))
+
+	vneqs := basictypes.RefuteForm(basictypes.MakerPred(
+		basictypes.Id_eq,
+		basictypes.NewTermList(v, s),
+		[]typing.TypeApp{},
+	))
+
+	tnequ := basictypes.RefuteForm(basictypes.MakerPred(
+		basictypes.Id_eq,
+		basictypes.NewTermList(t, u),
+		[]typing.TypeApp{},
+	))
+
+	global.PrintDebug("PS", fmt.Sprintf("Generated formulas : %s, %s", vneqs.ToString(), tnequ.ToString()))
+
+	state.AddToAlreadyAppliedZeq(pair)
+
+	var formTs [2]basictypes.Form
+	formTs[0] = vneqs
+	formTs[1] = tnequ
+
+	childIds := []int{}
+	var channels []Communication
+
+	for _, elem := range formTs {
+		i := global.IncrCptNode()
+
+		otherState := state.Copy()
+		otherFl := basictypes.MakeSingleElementFormAndTermList(basictypes.MakeFormAndTerm(elem, basictypes.NewTermList()))
+
+		otherState.SetLF(otherFl)
+		childIds = append(childIds, i)
+
+		if global.IsDestructive() {
+			channelChild := Communication{make(chan bool), make(chan Result)}
+			channels = append(channels, channelChild)
+			go ds.ProofSearch(global.GetGID(), otherState, channelChild, complextypes.MakeEmptySubstAndForm(), i, i, []int{})
+		} else {
+			go ds.ProofSearch(global.GetGID(), otherState, c, complextypes.MakeEmptySubstAndForm(), i, i, []int{})
+		}
+
+		global.IncrGoRoutine(1)
+		global.PrintDebug("PS", fmt.Sprintf("GO %v !", i))
+	}
+	ds.DoEndApplyZeq(fatherId, state, c, channels, currentNodeId, originalNodeId, childIds, metaToReintroduce)
+	// ds.ProofSearch(fatherId, state, c, complextypes.MakeEmptySubstAndForm(), childId, originalNodeId, []int{})
+}
+
 func (ds *destructiveSearch) DoEndApplyZeq(fatherId uint64, state complextypes.State, c Communication, channels []Communication, currentNodeId int, originalNodeId int, childIds []int, metaToReintroduce []int) {
 	ds.waitChildren(MakeWcdArgs(fatherId, state, c, channels, []complextypes.SubstAndForm{}, complextypes.MakeEmptySubstAndForm(), []complextypes.SubstAndForm{}, []complextypes.IntSubstAndFormAndTerms{}, currentNodeId, originalNodeId, false, childIds, metaToReintroduce))
 }
@@ -172,4 +235,23 @@ func isAlreadyApplied(state complextypes.State, pair global.BasicPaired[basictyp
 
 func isNilPair(pair global.BasicPaired[basictypes.Form, basictypes.Form]) bool {
 	return pair.GetFst() == nil && pair.GetSnd() == nil
+}
+
+func getPosAndNegPreds(st complextypes.State) *global.List[global.BasicPaired[basictypes.Pred, basictypes.Pred]] {
+	result := global.NewList[global.BasicPaired[basictypes.Pred, basictypes.Pred]]()
+	atomics := st.GetAtomic().ExtractForms()
+
+	for i := 0; i < atomics.Len()-1; i++ {
+		if typedFirst, ok := atomics.Get(i).(basictypes.Pred); ok {
+			for j := 1; j < atomics.Len(); j++ {
+				if not, ok := atomics.Get(j).(basictypes.Not); ok {
+					if typedSecond, ok := not.GetForm().(basictypes.Pred); ok {
+						result.AppendIfNotContains(global.NewBasicPair(typedFirst, typedSecond))
+					}
+				}
+			}
+		}
+	}
+
+	return result
 }
