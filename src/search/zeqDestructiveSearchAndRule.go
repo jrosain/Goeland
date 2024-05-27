@@ -16,7 +16,7 @@ func EnableZeq() {
 	ds.doCorrectApplyRules = ds.zeqApplyRule
 }
 
-func equalitySort(fatherId uint64, state complextypes.State, c Communication, newAtomics basictypes.FormAndTermsList, currentNodeId int, originalNodeId int, metaToReintroduce []int) (eqs, neqs basictypes.FormAndTermsList) {
+func equalitySort(state complextypes.State) (eqs, neqs basictypes.FormAndTermsList) {
 	atoms := state.GetAtomic()
 	neqs = basictypes.MakeEmptyFormAndTermsList()
 	eqs = basictypes.MakeEmptyFormAndTermsList()
@@ -39,7 +39,7 @@ func equalitySort(fatherId uint64, state complextypes.State, c Communication, ne
 
 func (ds *destructiveSearch) zeqApplyRule(fatherId uint64, state complextypes.State, c Communication, newAtomics basictypes.FormAndTermsList, currentNodeId int, originalNodeId int, metaToReintroduce []int) {
 
-	eqs, neqs := equalitySort(fatherId, state, c, newAtomics, currentNodeId, originalNodeId, metaToReintroduce)
+	eqs, neqs := equalitySort(state)
 	state.SetEqs(eqs.ExtractForms())
 	state.SetNeqs(neqs.ExtractForms())
 	eqPair := CanApplyTs(state)
@@ -239,7 +239,7 @@ func getPosAndNegPreds(st complextypes.State) *global.List[global.BasicPaired[ba
 			for j := 1; j < atomics.Len(); j++ {
 				if not, ok := atomics.Get(j).(basictypes.Not); ok {
 					if typedSecond, ok := not.GetForm().(basictypes.Pred); ok {
-						if typedFirst.GetID().Equals(typedSecond.GetID()) {
+						if !typedFirst.GetID().Equals(basictypes.Id_eq) && typedFirst.GetID().Equals(typedSecond.GetID()) {
 							result.AppendIfNotContains(global.NewBasicPair(typedFirst, typedSecond))
 						}
 					}
