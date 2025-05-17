@@ -1,7 +1,7 @@
 name: PR Labelling
 
 on:
-  - pull_request # TODO: change to pull_request_target on merge
+  - pull_request
 
 jobs:
   Label:
