@@ -42,6 +42,7 @@ import (
 
 	"github.com/GoelandProver/Goeland/AST"
 	"github.com/GoelandProver/Goeland/Glob"
+	"github.com/GoelandProver/Goeland/Lib"
 )
 
 /*** Structure ***/
@@ -174,7 +175,10 @@ func (fl FormAndTermsList) ExtractForms() *AST.FormList {
 	return res
 }
 
-func (fl FormAndTermsList) SubstituteBy(metas *AST.MetaList, terms *AST.TermList) FormAndTermsList {
+func (fl FormAndTermsList) SubstituteBy(
+	metas *AST.MetaList,
+	terms Lib.List[AST.Term],
+) FormAndTermsList {
 	result := FormAndTermsList{}
 
 	for _, fat := range fl {

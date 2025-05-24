@@ -42,6 +42,7 @@ import (
 	"github.com/GoelandProver/Goeland/AST"
 	"github.com/GoelandProver/Goeland/Core"
 	"github.com/GoelandProver/Goeland/Glob"
+	"github.com/GoelandProver/Goeland/Lib"
 	"github.com/GoelandProver/Goeland/Mods/dmt"
 	"github.com/GoelandProver/Goeland/Unif"
 )
@@ -106,7 +107,10 @@ func (ds *destructiveSearch) doOneStep(limit int, formula AST.Form) (bool, int) 
 	Glob.PrintInfo("MAIN", fmt.Sprintf("Launch Gotab with destructive = %v", Glob.IsDestructive()))
 
 	Glob.SetNbGoroutines(0)
-	state.SetLF(Core.MakeSingleElementFormAndTermList(Core.MakeFormAndTerm(formula, AST.NewTermList())))
+	state.SetLF(Core.MakeSingleElementFormAndTermList(Core.MakeFormAndTerm(
+		formula,
+		Lib.MkList[AST.Term](0),
+	)))
 	c := MakeCommunication(make(chan bool), make(chan Result))
 
 	if Glob.GetExchanges() {
@@ -255,7 +259,7 @@ func (ds *destructiveSearch) ProofSearch(father_id uint64, st State, cha Communi
 			if !Glob.GetAssisted() {
 				Glob.PrintDebug("PS", fmt.Sprintf("##### Formula %v #####", atomic.ToString()))
 				clos_res, subst := ApplyClosureRules(atomic, &st)
-				fAt := Core.MakeFormAndTerm(atomic, AST.NewTermList())
+				fAt := Core.MakeFormAndTerm(atomic, Lib.MkList[AST.Term](0))
 
 				if clos_res {
 					ds.ManageClosureRule(father_id, &st, cha, Unif.CopySubstList(subst), fAt, node_id, original_node_id)
@@ -273,14 +277,20 @@ func (ds *destructiveSearch) ProofSearch(father_id uint64, st State, cha Communi
 			if !ok {
 				return
 			}
-			new_atomics = append(new_atomics, Core.MakeFormAndTerm(f.Copy(), AST.NewTermList()))
+			new_atomics = append(new_atomics, Core.MakeFormAndTerm(
+				f.Copy(),
+				Lib.MkList[AST.Term](0),
+			))
 		}
 		for _, f := range atomicsMinus.Slice() {
 			ok := lam(AST.MakerNot(f))
 			if !ok {
 				return
 			}
-			new_atomics = append(new_atomics, Core.MakeFormAndTerm(AST.MakerNot(f), AST.NewTermList()))
+			new_atomics = append(new_atomics, Core.MakeFormAndTerm(
+				AST.MakerNot(f),
+				Lib.MkList[AST.Term](0),
+			))
 		}
 
 		/** Filter Atomics for DMT
