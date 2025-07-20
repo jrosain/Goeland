@@ -213,8 +213,6 @@ func ApplySubstitutionOnTerm(old_symbol AST.Meta, new_symbol, t AST.Term) AST.Te
 		res = AST.MakerFun(
 			nf.GetP(),
 			ApplySubstitutionOnTermList(old_symbol, new_symbol, nf.GetArgs()),
-			nf.GetTypeVars(),
-			nf.GetTypeHint(),
 		)
 	}
 	return res
@@ -272,14 +270,6 @@ func ApplySubstitutionOnTermList(
 	return res
 }
 
-func applySubstitutionOnTypeList(old_symbol AST.Meta, new_symbol AST.Term, tl []AST.TypeApp) []AST.TypeApp {
-	res := make([]AST.TypeApp, len(tl))
-	for i, t := range tl {
-		res[i] = applySubstitutionOnType(old_symbol.GetTypeApp(), new_symbol.(AST.TypedTerm).GetTypeApp(), t)
-	}
-	return res
-}
-
 /* Apply a substitution on a formula */
 func ApplySubstitutionOnFormula(old_symbol AST.Meta, new_symbol AST.Term, f AST.Form) AST.Form {
 	var res AST.Form
@@ -290,8 +280,6 @@ func ApplySubstitutionOnFormula(old_symbol AST.Meta, new_symbol AST.Term, f AST.
 			nf.GetIndex(),
 			nf.GetID(),
 			ApplySubstitutionOnTermList(old_symbol, new_symbol, nf.GetArgs()),
-			applySubstitutionOnTypeList(old_symbol, new_symbol, nf.GetTypeVars()),
-			nf.GetType(),
 		)
 	case AST.Not:
 		res = AST.MakeNot(f.GetIndex(), ApplySubstitutionOnFormula(old_symbol, new_symbol, nf.GetForm()))

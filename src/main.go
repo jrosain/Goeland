@@ -56,7 +56,6 @@ import (
 	"github.com/GoelandProver/Goeland/Mods/dmt"
 	"github.com/GoelandProver/Goeland/Parser"
 	"github.com/GoelandProver/Goeland/Search"
-	"github.com/GoelandProver/Goeland/Typing"
 )
 
 var chAssistant chan bool = make(chan bool)
@@ -346,13 +345,13 @@ func checkForTypedProof(form AST.Form) AST.Form {
 	isTypedProof := !AST.EmptyGlobalContext() && !Glob.NoTypeCheck()
 
 	if isTypedProof {
-		err := Typing.WellFormedVerification(form.Copy(), Glob.GetTypeProof())
+		// err := Typing.WellFormedVerification(form.Copy(), Glob.GetTypeProof())
 
-		if err != nil {
-			Glob.Fatal(main_label, fmt.Sprintf("Typing error: %v", err))
-		} else {
-			Glob.PrintInfo(main_label, "Well typed.")
-		}
+		// if err != nil {
+		// 	Glob.Fatal(main_label, fmt.Sprintf("Typing error: %v", err))
+		// } else {
+		// 	Glob.PrintInfo(main_label, "Well typed.")
+		// }
 	}
 
 	return form
