@@ -31,68 +31,56 @@
 **/
 
 /**
- * This file declares TPTP native types and types scheme :
- *	- int, rat, real for primitives
- *	- a bunch of type schemes
+ * This file provides a generic interface to launch goroutines on functions,
+ * collect their result and compute a final value.
+ * The computation of the final value is done incrementally at the answer of each child,
+ * consequently, the function taking care of reconciliating the output of two children
+ * should be associative, commutative, and have a neutral.
  **/
 
-package AST
+package Lib
 
 import (
-	"github.com/GoelandProver/Goeland/Lib"
+	"fmt"
+	"reflect"
 )
 
-var tType Ty
-
-var tInt Ty
-var tRat Ty
-var tReal Ty
-
-var tIndividual Ty
-var tProp Ty
-
-func initTPTPNativeTypes() {
-	tType = MkTyConst("$tType")
-
-	tInt = MkTyConst("$int")
-	tRat = MkTyConst("$rat")
-	tReal = MkTyConst("$real")
-
-	tIndividual = MkTyConst("$i")
-	tProp = MkTyConst("$o")
+func GenericParallel[T any](
+	calls []func(chan T),
+	reconciliation func(T, T) T,
+	neutral T,
+) (T, error) {
+	channels := make([](chan T), len(calls))
+	for i, call := range calls {
+		call_chan := make(chan T)
+		channels[i] = call_chan
+		go call(call_chan)
+	}
+	return genericSelect(channels, reconciliation, neutral)
 }
 
-func TType() Ty {
-	return tType
-}
+func genericSelect[T any](
+	channels [](chan T),
+	reconciliation func(T, T) T,
+	neutral T,
+) (T, error) {
+	remaining := len(channels)
+	res := neutral
+	cases := make([]reflect.SelectCase, len(channels))
+	for i, channel := range channels {
+		cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(channel)}
+	}
 
-func TInt() Ty {
-	return tInt
-}
+	for remaining > 0 {
+		_, value, _ := reflect.Select(cases)
+		remaining--
 
-func TRat() Ty {
-	return tRat
-}
+		if v, ok := value.Interface().(T); ok {
+			res = reconciliation(res, v)
+		} else {
+			return neutral, fmt.Errorf("Error in Lib.Par: channel has not answered a value of the right type.")
+		}
+	}
 
-func TReal() Ty {
-	return tReal
-}
-
-func TIndividual() Ty {
-	return tIndividual
-}
-
-func TProp() Ty {
-	return tProp
-}
-
-func IsTType(ty Ty) bool {
-	return ty.Equals(tType)
-}
-
-func DefinedTPTPTypes() Lib.List[TyConstr] {
-	return Lib.ListMap(
-		Lib.MkListV(tType, tInt, tRat, tReal, tIndividual, tProp),
-		func(ty Ty) TyConstr { return ty.(TyConstr) },
-	)
+	return res, nil
 }

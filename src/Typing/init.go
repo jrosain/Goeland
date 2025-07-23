@@ -38,6 +38,7 @@ package Typing
 
 import (
 	"github.com/GoelandProver/Goeland/AST"
+	"github.com/GoelandProver/Goeland/Lib"
 	"sync"
 )
 
@@ -45,4 +46,87 @@ var global_env Env
 
 func Init() {
 	global_env = Env{make(map[string]AST.Ty), sync.Mutex{}}
+
+	initTPTPNativeTypes()
+}
+
+func initTPTPNativeTypes() {
+	for _, ty := range AST.DefinedTPTPTypes().GetSlice() {
+		AddToGlobalEnv(ty.Symbol(), AST.TType())
+	}
+
+	AddToGlobalEnv(
+		AST.Id_eq.GetName(),
+		AST.MkTyPi(
+			Lib.MkListV("α"),
+			AST.MkTyFunc(AST.MkTyProd(Lib.MkListV(AST.MkTyVar("α"), AST.MkTyVar("α"))), AST.TProp()),
+		),
+	)
+
+	// 1 - Binary predicates
+	recordBinaryProp("$less")
+	recordBinaryProp("$lesseq")
+	recordBinaryProp("$greater")
+	recordBinaryProp("$greatereq")
+
+	// 2 - Binary input arguments
+	recordBinaryInArgs("$sum")
+	recordBinaryInArgs("$difference")
+	recordBinaryInArgs("$product")
+	recordBinaryInArgs("$quotient_e")
+	recordBinaryInArgs("$quotient_t")
+	recordBinaryInArgs("$quotient_f")
+	recordBinaryInArgs("$remainder_e")
+	recordBinaryInArgs("$remainder_t")
+	recordBinaryInArgs("$remainder_f")
+
+	// 3 - $quotient
+	AddToGlobalEnv("$quotient", AST.MkTyFunc(AST.MkTyProd(Lib.MkListV(AST.TRat(), AST.TRat())), AST.TRat()))
+	AddToGlobalEnv("$quotient", AST.MkTyFunc(AST.MkTyProd(Lib.MkListV(AST.TReal(), AST.TReal())), AST.TReal()))
+
+	// 4 - Unary input arguments
+	recordUnaryInArgs("$uminus")
+	recordUnaryInArgs("$floor")
+	recordUnaryInArgs("$ceiling")
+	recordUnaryInArgs("$truncate")
+	recordUnaryInArgs("$round")
+
+	// 5 - Unary predicates
+	recordUnaryProp("$is_int")
+	recordUnaryProp("$is_rat")
+
+	// 6 - Conversion
+	recordConversion("$to_int", AST.TInt())
+	recordConversion("$to_rat", AST.TRat())
+	recordConversion("$to_real", AST.TReal())
+}
+
+func recordBinaryProp(name string) {
+	AddToGlobalEnv(name, AST.MkTyFunc(AST.MkTyProd(Lib.MkListV(AST.TInt(), AST.TInt())), AST.TProp()))
+	AddToGlobalEnv(name, AST.MkTyFunc(AST.MkTyProd(Lib.MkListV(AST.TRat(), AST.TRat())), AST.TProp()))
+	AddToGlobalEnv(name, AST.MkTyFunc(AST.MkTyProd(Lib.MkListV(AST.TReal(), AST.TReal())), AST.TProp()))
+}
+
+func recordBinaryInArgs(name string) {
+	AddToGlobalEnv(name, AST.MkTyFunc(AST.MkTyProd(Lib.MkListV(AST.TInt(), AST.TInt())), AST.TInt()))
+	AddToGlobalEnv(name, AST.MkTyFunc(AST.MkTyProd(Lib.MkListV(AST.TRat(), AST.TRat())), AST.TRat()))
+	AddToGlobalEnv(name, AST.MkTyFunc(AST.MkTyProd(Lib.MkListV(AST.TReal(), AST.TReal())), AST.TReal()))
+}
+
+func recordUnaryInArgs(name string) {
+	AddToGlobalEnv(name, AST.MkTyFunc(AST.TInt(), AST.TInt()))
+	AddToGlobalEnv(name, AST.MkTyFunc(AST.TRat(), AST.TRat()))
+	AddToGlobalEnv(name, AST.MkTyFunc(AST.TReal(), AST.TReal()))
+}
+
+func recordUnaryProp(name string) {
+	AddToGlobalEnv(name, AST.MkTyFunc(AST.TInt(), AST.TProp()))
+	AddToGlobalEnv(name, AST.MkTyFunc(AST.TRat(), AST.TProp()))
+	AddToGlobalEnv(name, AST.MkTyFunc(AST.TReal(), AST.TProp()))
+}
+
+func recordConversion(name string, out AST.Ty) {
+	AddToGlobalEnv(name, AST.MkTyFunc(AST.TInt(), out))
+	AddToGlobalEnv(name, AST.MkTyFunc(AST.TRat(), out))
+	AddToGlobalEnv(name, AST.MkTyFunc(AST.TReal(), out))
 }

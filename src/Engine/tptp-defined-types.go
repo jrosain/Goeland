@@ -31,68 +31,26 @@
 **/
 
 /**
- * This file declares TPTP native types and types scheme :
- *	- int, rat, real for primitives
- *	- a bunch of type schemes
- **/
+ * This file returns an initial context (one augmented with TPTP defined types)
+**/
 
-package AST
+package Engine
 
 import (
 	"github.com/GoelandProver/Goeland/Lib"
+	"github.com/GoelandProver/Goeland/Parser"
 )
 
-var tType Ty
+type Context []Lib.Pair[string, Parser.PType]
 
-var tInt Ty
-var tRat Ty
-var tReal Ty
-
-var tIndividual Ty
-var tProp Ty
-
-func initTPTPNativeTypes() {
-	tType = MkTyConst("$tType")
-
-	tInt = MkTyConst("$int")
-	tRat = MkTyConst("$rat")
-	tReal = MkTyConst("$real")
-
-	tIndividual = MkTyConst("$i")
-	tProp = MkTyConst("$o")
-}
-
-func TType() Ty {
-	return tType
-}
-
-func TInt() Ty {
-	return tInt
-}
-
-func TRat() Ty {
-	return tRat
-}
-
-func TReal() Ty {
-	return tReal
-}
-
-func TIndividual() Ty {
-	return tIndividual
-}
-
-func TProp() Ty {
-	return tProp
-}
-
-func IsTType(ty Ty) bool {
-	return ty.Equals(tType)
-}
-
-func DefinedTPTPTypes() Lib.List[TyConstr] {
-	return Lib.ListMap(
-		Lib.MkListV(tType, tInt, tRat, tReal, tIndividual, tProp),
-		func(ty Ty) TyConstr { return ty.(TyConstr) },
-	)
+func initialContext() Context {
+	tType := Parser.MkTypeConst("$tType").(Parser.PType)
+	return []Lib.Pair[string, Parser.PType]{
+		Lib.MkPair("$tType", tType),
+		Lib.MkPair("$int", tType),
+		Lib.MkPair("$rat", tType),
+		Lib.MkPair("$real", tType),
+		Lib.MkPair("$i", tType),
+		Lib.MkPair("$o", tType),
+	}
 }

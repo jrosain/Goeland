@@ -47,14 +47,12 @@ import (
 	"github.com/GoelandProver/Goeland/Typing"
 )
 
-type Context []Lib.Pair[string, Parser.PType]
-
 var elab_label string = "Elab"
 var parsing_label string = "Parsing"
 
 func ToInternalSyntax(parser_statements []Parser.PStatement) (statements []Core.Statement, is_typed bool) {
 	is_typed = false
-	con := Context{}
+	con := initialContext()
 	for _, statement := range parser_statements {
 		new_con, stmt, is_typed_stmt := elaborateParsingStatement(con, statement)
 		statements = append(statements, stmt)
@@ -153,6 +151,25 @@ func elaborateForm(con Context, f, source_form Parser.PForm) (AST.Form, bool) {
 	case Parser.PPred:
 		typed_arguments := pretype(con, pform.Args())
 		typed_args, term_args := splitTypes(typed_arguments)
+
+		// Special case: Id_eq gets elaborated
+		if pform.Symbol() == Parser.PEqSymbol {
+			if len(typed_arguments) != 2 ||
+				!typed_arguments[0].Snd.Equals(typed_arguments[1].Snd) {
+				Glob.Fatal(
+					elab_label,
+					fmt.Sprintf(
+						"%s expects arguments of the same type, got: %s, %s",
+						f.ToString(),
+						typed_arguments[0].Snd.ToString(),
+						typed_arguments[1].Snd.ToString(),
+					),
+				)
+			}
+
+			typed_args.Append(typed_arguments[0].Snd)
+		}
+
 		args := Lib.MkList[AST.Term](term_args.Len())
 		is_typed := false
 
@@ -210,6 +227,7 @@ func elaborateForm(con Context, f, source_form Parser.PForm) (AST.Form, bool) {
 				form = AST.MakerAll(vars, form)
 			}
 			return form, b
+
 		case Parser.PQuantEx:
 			if vars.Any(func(v AST.TypedVar) bool { return AST.IsTType(v.GetTy()) }) {
 				Glob.Anomaly(
@@ -369,14 +387,25 @@ func elaborateType(pty, source_type Parser.PType, from_top_level bool) AST.Ty {
 
 	case Parser.PTypeBin:
 		fail_if_forbidden := func(ty Parser.PType) {
-			Glob.Fatal(
-				parsing_label,
-				fmt.Sprintf(
-					"Non-atomic type (%s) found under the type %s",
-					ty.ToString(),
-					source_type.ToString(),
-				),
-			)
+			fatal := func() {
+				Glob.Fatal(
+					parsing_label,
+					fmt.Sprintf(
+						"Non-atomic type (%s) found under the type %s",
+						ty.ToString(),
+						source_type.ToString(),
+					),
+				)
+			}
+
+			switch nty := ty.(type) {
+			case Parser.PTypeBin:
+				if nty.Operator() == Parser.PTypeMap {
+					fatal()
+				}
+			case Parser.PTypeQuant:
+				fatal()
+			}
 		}
 
 		fail_if_forbidden(ty.Left())
