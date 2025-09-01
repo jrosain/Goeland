@@ -31,35 +31,34 @@
 **/
 
 /**
- * This file defines the global (polymorphic) interfaces.
+ * This file furnishes an implementation of maps using sets of pairs.
  **/
 
 package Lib
 
-type StrictlyOrdered interface {
-	Less(any) bool
+type Map[K Hashable, V any] map[int]V
+
+func MkMap[K Hashable, V any]() Map[K, V] {
+	return make(map[int]V)
 }
 
-type Copyable[T any] interface {
-	Copy() T
+func (m Map[K, V]) Get(key K) Option[V] {
+	id := key.Hash()
+	if v, ok := m[id]; ok {
+		return MkSome(v)
+	}
+	return MkNone[V]()
 }
 
-type Comparable interface {
-	Equals(any) bool
+func (m Map[K, V]) Set(key K, value V) Map[K, V] {
+	m[key.Hash()] = value
+	return m
 }
 
-type Ordered interface {
-	StrictlyOrdered
-	Comparable
-}
-
-type Func[T, U any] func(T) U
-type Func2[T, U, V any] func(T, U) V
-
-type Stringable interface {
-	ToString() string
-}
-
-type Hashable interface {
-	Hash() int
+func (m Map[K, V]) Copy() Map[K, V] {
+	new_map := MkMap[K, V]()
+	for k, v := range map[int]V(m) {
+		new_map[k] = v
+	}
+	return new_map
 }
