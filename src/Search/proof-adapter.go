@@ -96,23 +96,7 @@ func (proof TableauxProof) RuleApplied() TableauxRule {
 }
 
 func (proof TableauxProof) KindOfRule() TableauxRuleKind {
-	rule := proof.RuleApplied()
-
-	switch rule {
-	case RuleNotNot, RuleNotOr, RuleNotImp, RuleAnd:
-		return KindAlpha
-	case RuleNotAnd, RuleNotEqu, RuleOr, RuleImp, RuleEqu:
-		return KindBeta
-	case RuleNotAll, RuleEx:
-		return KindDelta
-	case RuleNotEx, RuleAll, RuleReintro:
-		return KindGamma
-	case RuleRew:
-		return KindRew
-	}
-
-	Glob.Anomaly(label, "Unknown kind of rule")
-	return 0
+	return proof.RuleApplied().KindOfRule()
 }
 
 func (proof TableauxProof) ResultFormulas() Lib.List[Lib.List[AST.Form]] {
@@ -144,6 +128,10 @@ func (proof TableauxProof) Children() Lib.List[IProof] {
 	} else {
 		return Lib.MkListV(IProof(TableauxProof(proof[1:])))
 	}
+}
+
+func (proof TableauxProof) Child(i int) IProof {
+	return proof.Children().At(i)
 }
 
 func (proof TableauxProof) RewrittenWith() Lib.Option[AST.Form] {

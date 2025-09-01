@@ -37,7 +37,10 @@
 package Search
 
 import (
+	"fmt"
+
 	"github.com/GoelandProver/Goeland/AST"
+	"github.com/GoelandProver/Goeland/Glob"
 	"github.com/GoelandProver/Goeland/Lib"
 )
 
@@ -69,6 +72,7 @@ const (
 	KindDelta
 	KindGamma
 	KindRew
+	KindClosure
 )
 
 type IProof interface {
@@ -77,6 +81,71 @@ type IProof interface {
 	KindOfRule() TableauxRuleKind
 	ResultFormulas() Lib.List[Lib.List[AST.Form]]
 	Children() Lib.List[IProof]
+	Child(int) IProof
 	RewrittenWith() Lib.Option[AST.Form]
 	TermGenerated() Lib.Option[Lib.Either[AST.Ty, AST.Term]]
+}
+
+// ----------------------------------------------------------------------------
+// Public methods
+// ----------------------------------------------------------------------------
+
+func (r TableauxRule) ToString() string {
+	switch r {
+	case RuleClosure:
+		return "closure"
+	case RuleAnd:
+		return "alpha_and"
+	case RuleNotNot:
+		return "alpha_not_not"
+	case RuleNotImp:
+		return "alpha_not_imp"
+	case RuleNotOr:
+		return "alpha_not_or"
+	case RuleImp:
+		return "beta_imply"
+	case RuleOr:
+		return "beta_or"
+	case RuleEqu:
+		return "beta_equ"
+	case RuleNotAnd:
+		return "beta_not_and"
+	case RuleNotEqu:
+		return "beta_not_equ"
+	case RuleEx:
+		return "delta_ex"
+	case RuleNotAll:
+		return "delta_not_all"
+	case RuleAll:
+		return "gamma_all"
+	case RuleNotEx:
+		return "gamma_not_ex"
+	case RuleReintro:
+		return "reintroduction"
+	case RuleRew:
+		return "rewrite"
+	}
+
+	Glob.Anomaly("IProof", fmt.Sprintf("Unknown rule %d", r))
+	return ""
+}
+
+func (r TableauxRule) KindOfRule() TableauxRuleKind {
+	switch r {
+	case RuleNotNot, RuleNotOr, RuleNotImp, RuleAnd:
+		return KindAlpha
+	case RuleNotAnd, RuleNotEqu, RuleOr, RuleImp, RuleEqu:
+		return KindBeta
+	case RuleNotAll, RuleEx:
+		return KindDelta
+	case RuleNotEx, RuleAll, RuleReintro:
+		return KindGamma
+	case RuleRew:
+		return KindRew
+	case RuleClosure:
+		return KindClosure
+	}
+
+	Glob.Anomaly(label, "Unknown kind of rule")
+	return 0
 }

@@ -35,68 +35,29 @@ import (
 	"strings"
 
 	"fmt"
+
 	"github.com/GoelandProver/Goeland/AST"
 	"github.com/GoelandProver/Goeland/Glob"
 	"github.com/GoelandProver/Goeland/Lib"
+	"github.com/GoelandProver/Goeland/Search"
 )
 
 type GS3Sequent struct {
-	hypotheses     Lib.List[AST.Form]
-	rule           Rule
-	appliedOn      int
-	rewriteWith    int
-	termGenerated  AST.Term
-	formsGenerated []Lib.List[AST.Form]
-	children       []*GS3Sequent
-	proof          GS3Proof
-	nodeId         int
+	hypotheses    Lib.List[AST.Form]
+	rule          Search.TableauxRule
+	appliedOn     int
+	rewriteWith   Lib.Option[int]
+	termGenerated Lib.Option[Lib.Either[AST.Ty, AST.Term]]
+	children      Lib.List[*GS3Sequent]
 }
 
-type Rule int
-
-// Rules
-const (
-	AX Rule = iota
-	W
-	NOT
-	IMP
-	AND
-	OR
-	EQU
-	EX
-	ALL
-	NNOT
-	NIMP
-	NAND
-	NOR
-	NEQU
-	NEX
-	NALL
-	R
-	REWRITE
-)
-
-func MakeNewSequent() *GS3Sequent {
+func NewSequent() *GS3Sequent {
 	seq := new(GS3Sequent)
 	seq.hypotheses = Lib.NewList[AST.Form]()
-	seq.children = make([]*GS3Sequent, 0)
+	seq.rewriteWith = Lib.MkNone[int]()
+	seq.termGenerated = Lib.MkNone[AST.Term]()
+	seq.children = Lib.NewList[*GS3Sequent]()
 	return seq
-}
-
-func IsGammaRule(rule Rule) bool {
-	return rule == ALL || rule == NEX
-}
-
-func IsDeltaRule(rule Rule) bool {
-	return rule == NALL || rule == EX
-}
-
-func IsBetaRule(rule Rule) bool {
-	return rule == NAND || rule == NEQU || rule == IMP || rule == EQU || rule == OR
-}
-
-func IsAlphaRule(rule Rule) bool {
-	return rule == AND || rule == NOR || rule == NIMP || rule == NNOT
 }
 
 // ----------------------------------------------------------------------------
@@ -108,36 +69,22 @@ func (seq *GS3Sequent) GetTargetForm() AST.Form {
 }
 
 func (seq *GS3Sequent) Child(i int) *GS3Sequent {
-	return seq.children[i]
+	return seq.children.At(i)
 }
 
-func (seq *GS3Sequent) Children() []*GS3Sequent {
+func (seq *GS3Sequent) Children() Lib.List[*GS3Sequent] {
 	return seq.children
 }
 
-func (seq *GS3Sequent) Rule() Rule {
+func (seq *GS3Sequent) Rule() Search.TableauxRule {
 	return seq.rule
 }
 
-func (seq *GS3Sequent) GetResultFormulasOfChild(i int) Lib.List[AST.Form] {
-	return seq.formsGenerated[i]
-}
-
-func (seq *GS3Sequent) GetResultFormulasOfChildren() []Lib.List[AST.Form] {
-	result := []Lib.List[AST.Form]{}
-
-	for i := range seq.children {
-		result = append(result, seq.formsGenerated[i])
-	}
-
-	return result
-}
-
-func (seq *GS3Sequent) TermGenerated() AST.Term {
+func (seq *GS3Sequent) TermGenerated() Lib.Option[Lib.Either[AST.Ty, AST.Term]] {
 	return seq.termGenerated
 }
 
-func (seq *GS3Sequent) IsEmpty() bool {
+func (seq *GS3Sequent) Empty() bool {
 	return seq.hypotheses.Empty()
 }
 
@@ -145,85 +92,64 @@ func (seq *GS3Sequent) ToString() string {
 	return seq.toStringAux(0)
 }
 
-func (seq *GS3Sequent) GetRewriteWith() AST.Form {
-	return seq.hypotheses.At(seq.rewriteWith)
+func (seq *GS3Sequent) GetRewriteWith() Lib.Option[AST.Form] {
+	return Lib.OptBind(seq.rewriteWith, func(i int) Lib.Option[AST.Form] {
+		return Lib.MkSome(seq.hypotheses.At(i))
+	})
 }
 
-func (seq *GS3Sequent) GetId() int {
-	return seq.nodeId
-}
-
-func (seq *GS3Sequent) SetId(i int) {
-	seq.nodeId = i
-}
-
-func (seq *GS3Sequent) SetFormGenerated(fg []Lib.List[AST.Form]) {
-	seq.formsGenerated = fg
-}
-
-func (seq *GS3Sequent) SetChildren(c []*GS3Sequent) {
+func (seq *GS3Sequent) SetChildren(c Lib.List[*GS3Sequent]) *GS3Sequent {
 	seq.children = c
+	return seq
 }
 
-func (seq *GS3Sequent) SetTargetForm(f AST.Form) {
+func (seq *GS3Sequent) SetTargetForm(f AST.Form) *GS3Sequent {
 	seq.hypotheses.Upd(seq.appliedOn, f)
-}
-
-func (seq *GS3Sequent) SetTermGenerated(t AST.Term) {
-	seq.termGenerated = t
+	return seq
 }
 
 // ----------------------------------------------------------------------------
 // Private methods & functions
 // ----------------------------------------------------------------------------
 
-func (seq *GS3Sequent) setHypotheses(forms Lib.List[AST.Form]) {
+func (seq *GS3Sequent) setHypotheses(forms Lib.List[AST.Form]) *GS3Sequent {
 	seq.hypotheses = Lib.ListCpy(forms)
 	// If equality reasoning has been used to terminate the proof, then an empty predicate is expected
 	// (see search_destructive, manageClosureRule on eq reasoning).
 	// As such, add an hypothesis with the empty =
 	seq.hypotheses.Append(AST.EmptyPredEq)
+
+	return seq
 }
 
-func (seq *GS3Sequent) setAppliedRule(rule Rule) {
+func (seq *GS3Sequent) setAppliedRule(rule Search.TableauxRule) *GS3Sequent {
 	seq.rule = rule
+	return seq
 }
 
-func (seq *GS3Sequent) setAppliedOn(hypothesis AST.Form) {
-	index_opt := Lib.ListIndexOf(hypothesis, seq.hypotheses)
-	switch index := index_opt.(type) {
-	case Lib.Some[int]:
-		seq.appliedOn = int(index.Val)
-	case Lib.None[int]:
-		debug(
-			Lib.MkLazy(func() string {
-				return fmt.Sprintf(
-					"Tried to apply %s in a context composed of the following hypotheses: \n%s",
-					hypothesis.ToString(),
-					Lib.ListToString(seq.hypotheses, "\n", "(empty context)"),
-				)
-			}),
-		)
-		Glob.Anomaly("GS3", "Failure: tried to apply a missing hypothesis")
-	}
+func (seq *GS3Sequent) setAppliedOn(hypothesis AST.Form) *GS3Sequent {
+	seq.appliedOn = seq.getIndexOf(hypothesis)
+	return seq
 }
 
-func (seq *GS3Sequent) setTermGenerated(t AST.Term) {
+func (seq *GS3Sequent) setTermGenerated(t Lib.Option[Lib.Either[AST.Ty, AST.Term]]) *GS3Sequent {
 	seq.termGenerated = t
+	return seq
 }
 
-func (seq *GS3Sequent) addChild(oth ...*GS3Sequent) {
-	seq.children = append(seq.children, oth...)
+func (seq *GS3Sequent) addChild(oth ...*GS3Sequent) *GS3Sequent {
+	seq.children.Append(oth...)
+	return seq
 }
 
 func (seq *GS3Sequent) toStringAux(i int) string {
 	identation := strings.Repeat("  ", i)
-	status := seq.ruleToString(seq.rule) + " on " + seq.hypotheses.At(seq.appliedOn).ToString()
-	if seq.IsEmpty() {
+	status := seq.rule.ToString() + " on " + seq.hypotheses.At(seq.appliedOn).ToString()
+	if seq.Empty() {
 		status = "EMPTY"
 	}
-	childrenStrings := make([]string, len(seq.children))
-	for j, child := range seq.children {
+	childrenStrings := make([]string, seq.children.Len())
+	for j, child := range seq.children.GetSlice() {
 		if child != nil {
 			childrenStrings[j] = child.toStringAux(i + 1)
 		}
@@ -231,107 +157,30 @@ func (seq *GS3Sequent) toStringAux(i int) string {
 	return "\n" + identation + status + strings.Join(childrenStrings, "")
 }
 
-func (seq *GS3Sequent) ruleToString(rule Rule) string {
-	mapping := map[Rule]string{
-		NNOT: "NOT_NOT (alpha)",
-		NOR:  "NOT_OR (alpha)",
-		NIMP: "NOT_IMPLY (alpha)",
-		AND:  "AND (alpha)",
-		NAND: "NOT_AND (beta)",
-		NEQU: "NOT_EQUIV (beta)",
-		OR:   "OR (beta)",
-		IMP:  "IMPLY (beta)",
-		EQU:  "EQUIV (beta)",
-		NEX:  "NOT_EXISTS (gamma)",
-		ALL:  "FORALL (gamma)",
-		NALL: "NOT_FORALL (delta)",
-		EX:   "EXISTS (delta)",
-		AX:   "AXIOM",
-		W:    "WEAKEN",
-	}
-	return mapping[rule]
+func (seq *GS3Sequent) setRewrittenWith(form AST.Form) *GS3Sequent {
+	rewrite_index := seq.getIndexOf(form)
+	seq.rewriteWith = Lib.MkSome(rewrite_index)
+	return seq
 }
 
-func (seq *GS3Sequent) setFormsGenerated(forms []Lib.List[AST.Form]) {
-	seq.formsGenerated = forms
-}
+func (seq *GS3Sequent) getIndexOf(target AST.Form) int {
+	index_opt := Lib.ListIndexOf(target, seq.hypotheses)
 
-func proofStructRuleToGS3Rule(rule string) Rule {
-	mapping := map[string]Rule{
-		"ALPHA_NOT_NOT":    NNOT,
-		"ALPHA_NOT_OR":     NOR,
-		"ALPHA_NOT_IMPLY":  NIMP,
-		"ALPHA_AND":        AND,
-		"BETA_NOT_AND":     NAND,
-		"BETA_NOT_EQUIV":   NEQU,
-		"BETA_OR":          OR,
-		"BETA_IMPLY":       IMP,
-		"BETA_EQUIV":       EQU,
-		"GAMMA_NOT_EXISTS": NEX,
-		"GAMMA_FORALL":     ALL,
-		"DELTA_NOT_FORALL": NALL,
-		"DELTA_EXISTS":     EX,
-		"CLOSURE":          AX,
-		"WEAKEN":           W,
-		"Reintroduction":   R,
-		"Rewrite":          REWRITE,
-	}
-	return mapping[rule]
-}
-func ruleToTableauxString(rule Rule) string {
-	mapping := map[Rule]string{
-		NNOT:    "ALPHA_NOT_NOT",
-		NOR:     "ALPHA_NOT_OR",
-		NIMP:    "ALPHA_NOT_IMPLY",
-		AND:     "ALPHA_AND",
-		NAND:    "BETA_NOT_AND",
-		NEQU:    "BETA_NOT_EQUIV",
-		OR:      "BETA_OR",
-		IMP:     "BETA_IMPLY",
-		EQU:     "BETA_EQUIV",
-		NEX:     "GAMMA_NOT_EXISTS",
-		ALL:     "GAMMA_FORALL",
-		NALL:    "DELTA_NOT_FORALL",
-		EX:      "DELTA_EXISTS",
-		AX:      "CLOSURE",
-		W:       "WEAKEN",
-		REWRITE: "REWRITE",
-	}
-	return mapping[rule]
-}
-
-func (seq *GS3Sequent) setRewrittenWith(rewriteId int) {
-	for i, h := range seq.hypotheses.GetSlice() {
-		endForm := h
-		for Glob.Is[AST.All](endForm) {
-			endForm = endForm.(AST.All).GetForm()
-		}
-		endForm = getAtomic(endForm)
-		if endForm.GetIndex() == rewriteId {
-			seq.rewriteWith = i
-			return
-		}
+	switch index := index_opt.(type) {
+	case Lib.Some[int]:
+		return int(index.Val)
+	case Lib.None[int]:
+		debug(
+			Lib.MkLazy(func() string {
+				return fmt.Sprintf(
+					"Tried to get the index of %s in a context composed of the following hypotheses: \n%s",
+					target.ToString(),
+					Lib.ListToString(seq.hypotheses, "\n", "(empty context)"),
+				)
+			}),
+		)
+		Glob.Anomaly(gs3_label, "Failure: tried to get a missing hypothesis")
 	}
 
-	panic("Failure: tried to rewrite using a missing hypothesis")
-}
-
-func getAtomic(f AST.Form) AST.Form {
-	switch nf := f.(type) {
-	case AST.Imp:
-		if pred, isPred := nf.GetF1().(AST.Pred); isPred {
-			return pred
-		}
-		if pred, isPred := nf.GetF2().(AST.Pred); isPred {
-			return pred
-		}
-	case AST.Equ:
-		if pred, isPred := nf.GetF1().(AST.Pred); isPred {
-			return pred
-		}
-		if pred, isPred := nf.GetF2().(AST.Pred); isPred {
-			return pred
-		}
-	}
-	return f
+	return -1
 }
