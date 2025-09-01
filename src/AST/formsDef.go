@@ -225,6 +225,10 @@ func (o Or) GetIndex() int {
 	return o.index
 }
 
+func (o Or) Hash() int {
+	return o.index
+}
+
 func (o Or) forceGetMetas() Lib.Set[Meta] {
 	return metasUnion(o.forms)
 }
@@ -363,6 +367,10 @@ func (a And) GetIndex() int {
 	return a.index
 }
 
+func (a And) Hash() int {
+	return a.index
+}
+
 func (a And) forceGetMetas() Lib.Set[Meta] {
 	return metasUnion(a.forms)
 }
@@ -496,6 +504,7 @@ func (e Equ) GetChildrenForMappedString() []MappableString {
 }
 
 func (e Equ) GetIndex() int { return e.index }
+func (e Equ) Hash() int     { return e.index }
 func (e Equ) GetF1() Form   { return e.f1.Copy() }
 func (e Equ) GetF2() Form   { return e.f2.Copy() }
 func (e Equ) Copy() Form {
@@ -623,6 +632,7 @@ func (i Imp) GetChildrenForMappedString() []MappableString {
 }
 
 func (i Imp) GetIndex() int { return i.index }
+func (i Imp) Hash() int     { return i.index }
 func (i Imp) GetF1() Form   { return i.f1.Copy() }
 func (i Imp) GetF2() Form   { return i.f2.Copy() }
 func (i Imp) Copy() Form {
@@ -740,9 +750,8 @@ func MakerNot(form Form) Not {
 
 /** - Form interface Methods **/
 
-func (n Not) GetIndex() int {
-	return n.index
-}
+func (n Not) GetIndex() int { return n.index }
+func (n Not) Hash() int     { return n.index }
 
 func (n Not) forceGetMetas() Lib.Set[Meta] {
 	return n.GetForm().GetMetas()
@@ -919,6 +928,7 @@ func MakerPred(
 /* Pred attributes getters */
 
 func (p Pred) GetIndex() int           { return p.index }
+func (p Pred) Hash() int               { return p.index }
 func (p Pred) GetID() Id               { return p.id.Copy().(Id) }
 func (p Pred) GetTyArgs() Lib.List[Ty] { return p.tys }
 func (p Pred) GetArgs() Lib.List[Term] { return p.args }
@@ -1144,6 +1154,7 @@ func (t Top) ReplaceTermByTerm(Term, Term) (Form, bool)   { return MakeTop(t.Get
 func (t Top) SubstTy(TyGenVar, Ty) Form                   { return t }
 func (t Top) RenameVariables() Form                       { return MakeTop(t.GetIndex()) }
 func (t Top) GetIndex() int                               { return t.index }
+func (t Top) Hash() int                                   { return t.index }
 func (t Top) GetSubTerms() Lib.List[Term]                 { return Lib.NewList[Term]() }
 func (t Top) SubstituteVarByMeta(Var, Meta) Form          { return t }
 func (t Top) GetInternalMetas() Lib.Set[Meta]             { return Lib.EmptySet[Meta]() }
@@ -1187,6 +1198,7 @@ func (b Bot) ReplaceTermByTerm(Term, Term) (Form, bool)   { return MakeBot(b.Get
 func (b Bot) SubstTy(TyGenVar, Ty) Form                   { return b }
 func (b Bot) RenameVariables() Form                       { return MakeBot(b.GetIndex()) }
 func (b Bot) GetIndex() int                               { return b.index }
+func (b Bot) Hash() int                                   { return b.index }
 func (b Bot) GetSubTerms() Lib.List[Term]                 { return Lib.NewList[Term]() }
 func (b Bot) SubstituteVarByMeta(Var, Meta) Form          { return b }
 func (b Bot) GetInternalMetas() Lib.Set[Meta]             { return Lib.EmptySet[Meta]() }

@@ -71,6 +71,10 @@ func (q quantifier) GetIndex() int {
 	return q.index
 }
 
+func (q quantifier) Hash() int {
+	return q.index
+}
+
 func (q quantifier) GetVarList() Lib.List[TypedVar] {
 	return Lib.ListCpy(q.varList)
 }

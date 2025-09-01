@@ -50,6 +50,7 @@ type Form interface {
 	GetSubFormulasRecur() Lib.List[Form]
 	GetChildFormulas() Lib.List[Form]
 
+	Lib.Hashable
 	Lib.Copyable[Form]
 	MappableString
 

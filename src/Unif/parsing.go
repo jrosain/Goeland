@@ -65,6 +65,7 @@ func (t TermForm) SubstTy(AST.TyGenVar, AST.Ty) AST.Form {
 	return t
 }
 func (t TermForm) GetIndex() int                                  { return t.index }
+func (t TermForm) Hash() int                                      { return t.index }
 func (t TermForm) SubstituteVarByMeta(AST.Var, AST.Meta) AST.Form { return t }
 func (t TermForm) GetInternalMetas() Lib.List[AST.Meta]           { return Lib.NewList[AST.Meta]() }
 func (t TermForm) SetInternalMetas(Lib.List[AST.Meta]) AST.Form   { return t }

@@ -86,6 +86,10 @@ func (v TypedVar) SubstTy(old TyGenVar, new Ty) TypedVar {
 	return TypedVar{v.name, v.index, v.ty.SubstTy(old, new)}
 }
 
+func (v TypedVar) IsTyVar() bool {
+	return v.ty.Equals(TType())
+}
+
 func MkTypedVar(name string, index int, ty Ty) TypedVar {
 	return TypedVar{name, index, ty}
 }
