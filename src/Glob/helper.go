@@ -48,46 +48,21 @@ import (
 	"time"
 )
 
-var orocq = false
-var olambdapi = false
-var otptp = false
-var osctptp = false
-var Assisted = false
-var destructive = true
 var nb_gor = 0
 var mutex sync.Mutex
 var start time.Time
 var nb_step = 1
-var exchanges = false
-var proof = false
-var prettyPrint = false
 var data_struct = "trees"
 var limit = -1
-var one_step = false
 var plugins map[string]bool = make(map[string]bool)
 var lock_plugins sync.Mutex
 var cpt_node = -1
 var lock_cpt_node sync.Mutex
-var dmt_before_eq bool
 var problem_name string
 var core_limit = -1
-var completeness = false
-var isTypeProof = false
-var arithModule = false
-var innerSkolem = false
-var preInnerSko = false
 var commit string
 var version = fmt.Sprintf("1.2-dev.r%s", commit)
-var printVersion = false
-var allowFlattening = false
-var type_check = true
-
-var IncrEq = false
-
 var debug = Lib.EmptySet[Lib.String]()
-var writeLogs = false
-var silent = false
-
 var cpuProfile string
 var memProfile string
 
@@ -126,24 +101,9 @@ func GetGID() uint64 {
 }
 
 /* Getters */
+
 func GetDebug() bool {
 	return !debug.IsEmpty()
-}
-
-func GetSilent() bool {
-	return silent
-}
-
-func GetWriteLogs() bool {
-	return writeLogs
-}
-
-func GetAssisted() bool {
-	return Assisted
-}
-
-func IsDestructive() bool {
-	return destructive
 }
 
 func GetStart() time.Time {
@@ -158,24 +118,12 @@ func GetNbStep() int {
 	return nb_step
 }
 
-func GetExchanges() bool {
-	return exchanges
-}
-
 func GetDataStruct() string {
 	return data_struct
 }
 
 func GetLimit() int {
 	return limit
-}
-
-func IsOneStep() bool {
-	return one_step
-}
-
-func GetProof() bool {
-	return proof
 }
 
 func GetExecPath() string {
@@ -198,48 +146,12 @@ func IncrCptNode() int {
 	return GetCptNode()
 }
 
-func GetDMTBeforeEq() bool {
-	return dmt_before_eq
-}
-
-func IsPrettyPrint() bool {
-	return prettyPrint
-}
-
-func IsRocqOutput() bool {
-	return orocq
-}
-
-func IsLambdapiOutput() bool {
-	return olambdapi
-}
-
-func IsTPTPOutput() bool {
-	return otptp
-}
-
-func IsSCTPTPOutput() bool {
-	return osctptp
-}
-
 func GetProblemName() string {
 	return problem_name
 }
 
 func GetCoreLimit() int {
 	return core_limit
-}
-
-func GetCompleteness() bool {
-	return completeness
-}
-
-func GetTypeProof() bool {
-	return isTypeProof
-}
-
-func GetArithModule() bool {
-	return arithModule
 }
 
 func GetCpuProfile() string {
@@ -255,31 +167,11 @@ func IsConjectureFound() bool {
 }
 
 func IsOuterSko() bool {
-	return !(IsInnerSko() || IsPreInnerSko())
-}
-
-func IsInnerSko() bool {
-	return innerSkolem
-}
-
-func IsPreInnerSko() bool {
-	return preInnerSko
+	return !(GetFlag(UseInnerSkolemization) || GetFlag(UsePreInnerSkolemization))
 }
 
 func GetVersion() string {
 	return version
-}
-
-func GetPrintVersion() bool {
-	return printVersion
-}
-
-func Flatten() bool {
-	return allowFlattening
-}
-
-func NoTypeCheck() bool {
-	return !type_check
 }
 
 /* Setters */
@@ -304,24 +196,8 @@ func SetDebug(debug_list string) {
 	}
 }
 
-func SetSilent(b bool) {
-	silent = b
-}
-
-func SetWriteLogs(b bool) {
-	writeLogs = b
-}
-
-func SetAssisted(b bool) {
-	Assisted = b
-}
-
 func SetStart(t time.Time) {
 	start = t
-}
-
-func SetDestructive(b bool) {
-	destructive = b
 }
 
 func SetNbGoroutines(i int) {
@@ -332,10 +208,6 @@ func SetNbStep(i int) {
 	nb_step = i
 }
 
-func SetExchanges(b bool) {
-	exchanges = b
-}
-
 func SetDataStruct(s string) {
 	data_struct = s
 }
@@ -344,42 +216,10 @@ func SetLimit(i int) {
 	limit = i
 }
 
-func SetOneStep(b bool) {
-	one_step = b
-}
-
-func SetProof(b bool) {
-	proof = b
-}
-
-func DisplayPretty() {
-	prettyPrint = true
-}
-
-func OutputRocq() {
-	orocq = true
-}
-
-func OutputLambdapi() {
-	olambdapi = true
-}
-
-func OutputTPTP() {
-	otptp = true
-}
-
-func OutputSCTPTP() {
-	osctptp = true
-}
-
 func SetPlugin(s string, b bool) {
 	lock_plugins.Lock()
 	plugins[s] = b
 	lock_plugins.Unlock()
-}
-
-func SetDMTBeforeEQ(b bool) {
-	dmt_before_eq = b
 }
 
 func SetProblemName(problem string) {
@@ -388,18 +228,6 @@ func SetProblemName(problem string) {
 
 func SetCoreLimit(i int) {
 	core_limit = i
-}
-
-func SetCompleteness(b bool) {
-	completeness = b
-}
-
-func SetTypeProof(b bool) {
-	isTypeProof = b
-}
-
-func SetArithModule(b bool) {
-	arithModule = b
 }
 
 func SetCpuProfile(s string) {
@@ -412,24 +240,4 @@ func SetMemProfile(s string) {
 
 func SetConjecture(b bool) {
 	isConjectureFound = b
-}
-
-func SetInnerSko(b bool) {
-	innerSkolem = b
-}
-
-func SetPreInnerSko(b bool) {
-	preInnerSko = b
-}
-
-func SetPrintVersion(b bool) {
-	printVersion = b
-}
-
-func SetFlatteningAllowed() {
-	allowFlattening = true
-}
-
-func SetNoTypeCheck() {
-	type_check = false
 }

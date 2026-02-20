@@ -184,6 +184,12 @@ func (l List[T]) Empty() bool {
 	return l.Len() == 0
 }
 
+func (l List[T]) Iter(f func(T)) {
+	for _, x := range l.GetSlice() {
+		f(x)
+	}
+}
+
 func ToStrictlyOrderedList[T StrictlyOrdered](l List[T]) StrictlyOrderedList[T] {
 	return StrictlyOrderedList[T]{values: l}
 }
