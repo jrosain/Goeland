@@ -69,8 +69,8 @@ func MakeQuotedId(i int, s string) Id {
 	return Id{i, "" + s + "'"}
 }
 
-func MakeVar(i int, s string) Var {
-	return Var{i, s}
+func MakeVar(i int, ptr int) Var {
+	return Var{i, ptr}
 }
 
 func MakeMeta(index, occurence int, s string, f int, ty Ty) Meta {

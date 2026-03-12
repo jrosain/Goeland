@@ -37,6 +37,7 @@
 package AST
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/GoelandProver/Goeland/Glob"
@@ -273,22 +274,22 @@ func (f Fun) Less(u any) bool {
 
 type Var struct {
 	index int
-	name  string
+	ptr   int
 }
 
-func (v Var) ToString() string          { return printer.StrBound(v.name, v.index) }
+func (v Var) ToString() string          { return printer.StrBound(v.GetName(), v.index) }
 func (v Var) GetIndex() int             { return v.index }
-func (v Var) GetName() string           { return v.name }
+func (v Var) GetName() string           { return fmt.Sprintf("__%d__", v.ptr) }
 func (v Var) IsMeta() bool              { return false }
 func (v Var) IsFun() bool               { return false }
-func (v Var) Copy() Term                { return MakeVar(v.GetIndex(), v.GetName()) }
+func (v Var) Copy() Term                { return MakeVar(v.index, v.ptr) }
 func (Var) ToMeta() Meta                { return MakeEmptyMeta() }
 func (Var) GetMetas() Lib.Set[Meta]     { return Lib.EmptySet[Meta]() }
 func (Var) GetMetaList() Lib.List[Meta] { return Lib.NewList[Meta]() }
 
 func (v Var) Equals(t any) bool {
 	if typed, ok := t.(Var); ok {
-		return v.GetIndex() == typed.GetIndex()
+		return v.ptr == typed.ptr
 	}
 	return false
 }
@@ -313,7 +314,7 @@ func (v Var) SubstTy(TyGenVar, Ty) Term { return v }
 func (v Var) Less(u any) bool {
 	switch t := u.(type) {
 	case Term:
-		return v.GetIndex() < t.GetIndex()
+		return v.ptr < t.ptr
 	default:
 		Glob.Anomaly("Strict term comparison", "Not comparing two terms")
 	}

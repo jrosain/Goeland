@@ -108,7 +108,7 @@ func MakerNewId(s string) Id {
 }
 
 /* Var maker */
-func MakerVar(s string) Var {
+func MakerVar(ptr int) Var {
 	lock_term.Lock()
 	i, ok := idVar[s]
 	lock_term.Unlock()
