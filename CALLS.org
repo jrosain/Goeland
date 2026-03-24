@@ -1,5 +1,35 @@
 #+TITLE: Goéland Calls History
 
+* March 25th, 2026
+
+@jrosain asked what to do about the inconsistency issues found by Geoff (issues 75 and 76 on the tracker)
+
+@jcailler answered that she's going to have an intern working on congruence closure soon that will provide a first fix of the equality, and that she will investigate the issues on the substitutions (and when she has time she will cleanup the proof search procedure).
+
+@jrosain stated that it was okay as long as it was fixed in time for the next release candidate that is planned to be released along the submission of the journal paper.
+
+@jrosain asked if the =occurrence= field in =AST.Meta= could disappear, as well as the =formula= field.
+
+@jcailler said that it's ok as it's only used for non destructive. As non-destructive doesn't work anyway it can go before the fix of the non-destructive version.
+
+@jrosain spoke about the =FormListDS= file that is really a simple set of formulas.
+
+@jcailler justified that it's an old thing that hasn't been cleaned yet but that could probably be removed.
+
+@jrosain told that about old things, the =FormAndTerm= structure could also be cleaned up and that too many things were expected to take a =FormAndTerm= instead of a simple =Form=.
+
+They both agreed that it would be cleaned up eventually, probably when proof search gets cleaned up.
+
+@jrosain asked if it was possible to merge the PRs on the rework of the type system, the option to list the registered debuggers and the renaming of the test suite.
+
+@jcailler proceeded to merge these PRs.
+
+@jrosain reported the advances on the locally nameless approach, in particular the fact that it made things way easier at every level.
+
+@jcailler asked what she had to priorise between setting up the automated benchs or fixing the inconsistencies.
+
+It was settled that the benches should be up as soon as possible.
+
 * March 19th, 2026
 
 @jrosain spoke about the features he wants to introduce in the near future:
