@@ -1,0 +1,23 @@
+#+TITLE: Goéland Calls History
+
+* March 19th, 2026
+
+@jrosain spoke about the features he wants to introduce in the near future:
+- more cleanup in the AST by removing the =index= field in the formulas and terms,
+- locally nameless approach to formulas to avoid having to deal with the overhead of names,
+- hashconsing of formulas to increase performances (constant time comparison, cache opportunities, etc).
+
+@jcailler wished for the feature of listing the available debuggers.
+
+@jrosain asked to merge his PRs that were ready (removal of pointers in the list and add interpretation of negated conjecture).
+
+@jcailler asked to merge her PRs that were ready (fixing the cnf formulas in TPTP output, update the contributing guide).
+
+@jrosain asked for help in debugging the equality after the removal of indexes.
+
+@jcailler detailed her middle-term objectives:
+- implement congruence closure to have a working equality,
+- implement discrimination trees and modernize the unification infrastructure to make it easier to maintain,
+- cleanup the proof-search procedure to fix the issues with the substitutions.
+
+The call concluded by scheduling the next one on March 25th, 2026.
