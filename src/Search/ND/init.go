@@ -30,59 +30,16 @@
 * knowledge of the CeCILL license and that you accept its terms.
 **/
 
-package Lib
+package ND
 
-type Pair[T, U any] struct {
-	Fst T
-	Snd U
-}
+import "github.com/GoelandProver/Goeland/Glob"
 
-func MkPair[T, U any](x T, y U) Pair[T, U] {
-	return Pair[T, U]{x, y}
-}
+var raise_anomaly func(string)
+var debug Glob.Debugger
 
-func (p Pair[T, U]) ToString(f Func[T, string], g Func[U, string], sep string) string {
-	return "(" + f(p.Fst) + sep + g(p.Snd) + ")"
-}
-
-func PairToString[T, U Stringable](p Pair[T, U], sep string) string {
-	return p.ToString(T.ToString, U.ToString, sep)
-}
-
-// Managing lists of pairs
-type AssqList[T, U any] struct {
-	List[Pair[T, U]]
-}
-
-func EmptyAssqList[T, U any]() AssqList[T, U] {
-	return AssqList[T, U]{NewList[Pair[T, U]]()}
-}
-
-func Pr1[T, U any](ls AssqList[T, U]) List[T] {
-	return ListMap(ls.List, func(p Pair[T, U]) T { return p.Fst })
-}
-
-func Pr2[T, U any](ls AssqList[T, U]) List[U] {
-	return ListMap(ls.List, func(p Pair[T, U]) U { return p.Snd })
-}
-
-func MemAssq[T, U Comparable](x T, l AssqList[T, U]) bool {
-	return ListMem(x, Pr1(l))
-}
-
-func AssqOpt[T, U Comparable](x T, l AssqList[T, U]) Option[U] {
-	return OptBind(
-		ListIndexOf(x, Pr1(l)),
-		func(i int) Option[U] {
-			return MkSome(l.At(i).Snd)
-		},
-	)
-}
-
-func (l AssqList[T, U]) Push(k T, v U) AssqList[T, U] {
-	return AssqList[T, U]{l.List.Push(MkPair(k, v))}
-}
-
-func (l AssqList[T, U]) Clone() AssqList[T, U] {
-	return AssqList[T, U]{l.List.Clone()}
+func Init() {
+	raise_anomaly = func(msg string) {
+		Glob.Anomaly("nd", msg)
+	}
+	debug = Glob.CreateDebugger("nd")
 }

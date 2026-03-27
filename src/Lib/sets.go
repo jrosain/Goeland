@@ -81,53 +81,57 @@ func balance[T Ordered](node *Node[T]) int {
 	if node == nil {
 		return 0
 	}
-	return height(node.left) - height(node.right)
+	return height(node.right) - height(node.left)
 }
 
 func newHeight[T Ordered](node *Node[T]) int {
 	return 1 + max(height(node.left), height(node.right))
 }
 
-func rotateLeft[T Ordered](w *Node[T]) *Node[T] {
-	n := w.left
-	w.left = n.right
-	n.right = w
-	w.height = newHeight(w)
-	n.height = newHeight(n)
-	return n
+func rotateLeft[T Ordered](x, z *Node[T]) *Node[T] {
+	x.right, z.left = z.left, x
+	x.height = newHeight(x)
+	z.height = newHeight(z)
+	return z
 }
 
-func rotateRight[T Ordered](w *Node[T]) *Node[T] {
-	n := w.right
-	w.right = n.left
-	n.left = w
-	w.height = newHeight(w)
-	n.height = newHeight(n)
-	return n
+func rotateRight[T Ordered](x, z *Node[T]) *Node[T] {
+	x.left, z.right = z.right, x
+	x.height = newHeight(x)
+	z.height = newHeight(z)
+	return z
+}
+
+func rotateRightLeft[T Ordered](x, z *Node[T]) *Node[T] {
+	y := rotateRight(z, z.left)
+	return rotateLeft(x, y)
+}
+
+func rotateLeftRight[T Ordered](x, z *Node[T]) *Node[T] {
+	y := rotateLeft(z, z.right)
+	return rotateRight(x, y)
 }
 
 func rebalance[T Ordered](node *Node[T]) *Node[T] {
 	nodeBalance := balance(node)
 
-	if nodeBalance > 1 {
-		if balance(node.left) > 0 {
-			// Unbalanced by left child of left child
-			return rotateLeft(node)
-		} else {
-			// Unbalanced by right child of left child
-			node.left = rotateRight(node.left)
-			return rotateLeft(node)
-		}
-	}
-	if nodeBalance < -1 {
-		if balance(node.right) < 0 {
+	if nodeBalance == -2 || nodeBalance == 2 {
+		switch {
+		case node.right != nil && balance(node.right) >= 0:
 			// Unbalanced by right child of right child
-			return rotateRight(node)
-		} else {
+			return rotateLeft(node, node.right)
+		case node.left != nil && balance(node.left) <= 0:
+			// Unbalanced by left child of left child
+			return rotateRight(node, node.left)
+		case node.right != nil && balance(node.right) < 0:
 			// Unbalanced by left child of right child
-			node.right = rotateLeft(node.right)
-			return rotateRight(node)
+			return rotateRightLeft(node, node.right)
+		case node.left != nil && balance(node.left) > 0:
+			// Unbalanced by right child of left child
+			return rotateLeftRight(node, node.left)
 		}
+
+		// FIXME: maybe we should somehow raise an error here?
 	}
 
 	return node
@@ -198,11 +202,7 @@ func elements[T Ordered](node *Node[T]) List[T] {
 		return NewList[T]()
 	}
 
-	left := elements(node.left)
-	right := elements(node.right)
-	left.Append(append(right.GetSlice(), node.value)...)
-
-	return left
+	return elements(node.left).Push(node.value).Push(elements(node.right).GetSlice()...)
 }
 
 func find[T Ordered](node *Node[T], x T) bool {

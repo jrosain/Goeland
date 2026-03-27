@@ -668,7 +668,7 @@ func (p Pred) Less(oth any) bool {
 			} else if p.args.Len() > f.args.Len() {
 				return false
 			} else {
-				return Lib.ListLess(p.args, f.args)
+				return p.id.Less(f.id) || (p.id.Equals(f.id) && Lib.ListLess(p.args, f.args))
 			}
 		default:
 			return false

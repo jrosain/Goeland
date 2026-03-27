@@ -60,6 +60,7 @@ import (
 	"github.com/GoelandProver/Goeland/Mods/rocq"
 	"github.com/GoelandProver/Goeland/Parser"
 	"github.com/GoelandProver/Goeland/Search"
+	"github.com/GoelandProver/Goeland/Search/ND"
 	"github.com/GoelandProver/Goeland/Search/incremental"
 	"github.com/GoelandProver/Goeland/Typing"
 	"github.com/GoelandProver/Goeland/Unif"
@@ -222,6 +223,7 @@ func initDebuggers() {
 	desko.InitDebugger()
 	lambdapi.InitDebugger()
 	rocq.Init()
+	ND.Init()
 }
 
 // FIXME: eventually, we would want to add an "interpretation" layer between elab and internal representation that does this

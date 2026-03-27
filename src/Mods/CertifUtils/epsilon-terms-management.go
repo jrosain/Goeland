@@ -48,8 +48,8 @@ import (
  * simply offers utility functions at the instantiation time.
  **/
 type Epsilon struct {
-	tms    Lib.List[Lib.Pair[AST.Term, AST.Term]]
-	tys    Lib.List[Lib.Pair[AST.Ty, AST.Ty]]
+	tms    Lib.AssqList[AST.Term, AST.Term]
+	tys    Lib.AssqList[AST.Ty, AST.Ty]
 	ground Lib.Set[AST.Term]
 
 	on_term func(AST.Term) AST.Term
@@ -63,8 +63,8 @@ func EmptyEpsilon(
 	get func(Lib.Either[AST.Ty, AST.Term]) string,
 ) Epsilon {
 	return Epsilon{
-		tms:     Lib.NewList[Lib.Pair[AST.Term, AST.Term]](),
-		tys:     Lib.NewList[Lib.Pair[AST.Ty, AST.Ty]](),
+		tms:     Lib.EmptyAssqList[AST.Term, AST.Term](),
+		tys:     Lib.EmptyAssqList[AST.Ty, AST.Ty](),
 		ground:  ground_terms,
 		on_term: on_term,
 		on_type: on_type,
@@ -74,9 +74,9 @@ func EmptyEpsilon(
 func (e Epsilon) Introduced(tm Lib.Either[AST.Ty, AST.Term]) bool {
 	switch t := tm.(type) {
 	case Lib.Left[AST.Ty, AST.Term]:
-		return Lib.MemAssoc(t.Val, e.tys)
+		return Lib.MemAssq(t.Val, e.tys)
 	case Lib.Right[AST.Ty, AST.Term]:
-		return Lib.MemAssoc(t.Val, e.tms)
+		return Lib.MemAssq(t.Val, e.tms)
 	}
 	return false
 }

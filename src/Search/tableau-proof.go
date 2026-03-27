@@ -75,6 +75,28 @@ const (
 	KindStructural
 )
 
+func (k TableauxRuleKind) ToString() string {
+	switch {
+	case k == KindClosure:
+		return "Closure"
+	case k == KindAlpha:
+		return "Alpha"
+	case k == KindDelta:
+		return "Delta"
+	case k == KindBeta:
+		return "Beta"
+	case k == KindGamma:
+		return "Gamma"
+	case k == KindRew:
+		return "Rewrite"
+	case k == KindStructural:
+		return "Structural"
+	}
+
+	Glob.Anomaly(label, "Unknown rule kind")
+	return ""
+}
+
 func (r TableauxRule) ToString() string {
 	smap := map[TableauxRule]string{
 		RuleClosure: "Closure",

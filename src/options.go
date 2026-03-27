@@ -19,6 +19,7 @@ import (
 	"github.com/GoelandProver/Goeland/Mods/rocq"
 	"github.com/GoelandProver/Goeland/Mods/tptp"
 	"github.com/GoelandProver/Goeland/Search"
+	"github.com/GoelandProver/Goeland/Search/ND"
 	"github.com/GoelandProver/Goeland/Search/incremental"
 )
 
@@ -175,9 +176,8 @@ func buildOptions() {
 		false,
 		"Enables the non-destructive version",
 		func(bool) {
-			Search.SetSearchAlgorithm(Search.NewNonDestructiveSearch())
+			Search.SetSearchAlgorithm(ND.Algo())
 			Glob.SetDestructive(false)
-			Glob.SetOneStep(true)
 		},
 		func(bool) {})
 	(&option[int]{}).init(
